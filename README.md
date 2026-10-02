@@ -94,7 +94,8 @@ it writes a codec override to `~/.config/caelestia/cli.json`:
 ## Layout
 
 ```
-install.sh            interactive entrypoint
+bootstrap.sh          fresh-install entrypoint (clone + run install.sh)
+install.sh            interactive installer
 setup/                one script per step (all source setup/_lib.sh)
 config/
   caelestia/          user overrides: hypr-vars.lua, hypr-user.lua, shell.json, cli.json
