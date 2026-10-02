@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Hyprland (Caelestia)
+Comment=An intelligent dynamic tiling Wayland compositor
+Exec=/usr/local/bin/start-hyprland-caelestia
+Type=Application
+DesktopNames=Hyprland
+Keywords=wayland;compositor;tiling;caelestia

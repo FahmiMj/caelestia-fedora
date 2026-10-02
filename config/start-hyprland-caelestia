@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Launch the Caelestia Hyprland session. Installed to /usr/local/bin by the
+# Caelestia Fedora installer.
+export CAELESTIA_SESSION=1
+
+if [[ -x /usr/bin/start-hyprland ]]; then
+    exec /usr/bin/start-hyprland "$@"
+fi
+
+exec Hyprland "$@"
