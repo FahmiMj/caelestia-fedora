@@ -59,7 +59,11 @@ if [[ -d "${REPO_DIR}/.git" ]]; then
 else
     rm -rf "${REPO_DIR}"
     info "cloning ${repo_url} (${REF})"
-    git clone --depth=1 --branch "${REF}" "${repo_url}" "${REPO_DIR}"
+    if ! git clone --depth=1 --branch "${REF}" "${repo_url}" "${REPO_DIR}" 2>/dev/null; then
+        rm -rf "${REPO_DIR}"
+        info "branch/tag '${REF}' not found; cloning the default branch"
+        git clone --depth=1 "${repo_url}" "${REPO_DIR}"
+    fi
 fi
 
 export CAELESTIA_FEDORA_REPO="${repo_url}"
