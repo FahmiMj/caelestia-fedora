@@ -35,9 +35,14 @@ require_sudo() {
         info "dry-run: skipping sudo authentication"
         return 0
     fi
-    if ! sudo -n true 2>/dev/null; then
-        info "sudo will prompt for your password"
+    if sudo -n true 2>/dev/null; then
+        ok "sudo available (passwordless)"
+        return 0
     fi
+    if [[ ! -r /dev/tty ]]; then
+        die "sudo needs a password but no terminal is available; run interactively or configure NOPASSWD for this user"
+    fi
+    info "sudo will prompt for your password"
     # shellcheck disable=SC2024  # we want sudo to read the password from the tty
     sudo -v </dev/tty || die "sudo authentication failed"
     ok "sudo available"

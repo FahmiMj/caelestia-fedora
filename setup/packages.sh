@@ -40,7 +40,7 @@ pkg_desktop() {
         nwg-look nwg-displays \
         qt6ct qt6-qtbase qt6-qtdeclarative qt6-qtimageformats \
         qt6-qt5compat qt6-qtsvg qt6-qtwayland \
-        noto-fonts noto-fonts-cjk noto-fonts-emoji \
+        google-noto-sans-fonts google-noto-sans-cjk-fonts google-noto-color-emoji-fonts \
         google-rubik-fonts cascadia-code-nf-fonts \
         bibata-cursor-themes gammastep geoclue2
 }
@@ -51,14 +51,14 @@ pkg_apps() {
         foot fish fastfetch btop micro thunar firefox gnome-text-editor
     section "Shell tools"
     dnf_install \
-        eza zoxide direnv bat ripgrep ydotool lazygit \
+        eza zoxide direnv bat ripgrep ydotool gitui \
         jetbrains-mono-fonts
 }
 
 pkg_gpu() {
     section "GPU / media acceleration"
     dnf_install \
-        libva-utils mesa-va-drivers mesa-vulkan-drivers vulkan-loader \
+        libva-utils mesa-va-drivers-freeworld mesa-vulkan-drivers vulkan-loader \
         intel-media-driver gpu-screen-recorder
 }
 

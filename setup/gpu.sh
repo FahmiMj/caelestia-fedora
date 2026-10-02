@@ -30,7 +30,7 @@ maybe_nvidia() {
 install_gpu() {
     section "GPU / media packages"
     dnf_install \
-        libva-utils mesa-va-drivers mesa-vulkan-drivers vulkan-loader \
+        libva-utils mesa-va-drivers-freeworld mesa-vulkan-drivers vulkan-loader \
         intel-media-driver gpu-screen-recorder
     maybe_nvidia
     ok "GPU setup complete"

@@ -54,7 +54,7 @@ main() {
             starship) install_starship ;;
             firefox)  install_firefox_theme ;;
             nvim)     install_nvim ;;
-            zed)      dnf_install zed ;;
+            zed)      install_flatpak_hint zed dev.zed.Zed ;;
             vscode)   install_flatpak_hint vscode com.visualstudio.code ;;
             vscodium) install_flatpak_hint vscodium com.vscodium.codium ;;
             discord)  install_flatpak_hint discord com.discordapp.Discord ;;
