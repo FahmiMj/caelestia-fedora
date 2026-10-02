@@ -14,10 +14,10 @@
 #     bash <(curl -fsSL .../bootstrap.sh)
 set -euo pipefail
 
-# --- Default repository URL (optional) --------------------------------------
-# Set this to your fork after publishing, e.g.
-#   DEFAULT_REPO_URL="https://github.com/yourname/caelestia-fedora.git"
-DEFAULT_REPO_URL="${CAELESTIA_FEDORA_REPO:-}"
+# --- Default repository URL -------------------------------------------------
+# The repository is private, so the git credential helper from `gh auth login`
+# (or a personal access token) must be configured before this can clone it.
+DEFAULT_REPO_URL="${CAELESTIA_FEDORA_REPO:-https://github.com/FahmiMj/caelestia-fedora.git}"
 # ----------------------------------------------------------------------------
 
 REF="${CAELESTIA_REF:-main}"

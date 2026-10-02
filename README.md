@@ -26,29 +26,43 @@ fresh Fedora Workstation.
 
 ## Quick start (fresh Fedora install)
 
-On a fresh Fedora Workstation, open a terminal and run a single command. This
-fetches `bootstrap.sh`, clones this repository into
-`~/.cache/caelestia-fedora/repo` and launches the installer:
+This repository is **private**, so the fresh machine has to authenticate with
+GitHub first. The simplest path uses the GitHub CLI:
 
 ```bash
-CAELESTIA_FEDORA_REPO=https://github.com/<user>/caelestia-fedora.git \
-  bash <(curl -fsSL https://raw.githubusercontent.com/<user>/caelestia-fedora/main/bootstrap.sh)
+# on the fresh Fedora machine
+sudo dnf install -y gh
+gh auth login
+gh repo clone FahmiMj/caelestia-fedora ~/.cache/caelestia-fedora/repo
+bash ~/.cache/caelestia-fedora/repo/install.sh
 ```
 
 For a fully unattended install, append `--yes`:
 
 ```bash
-CAELESTIA_FEDORA_REPO=https://github.com/<user>/caelestia-fedora.git \
-  bash <(curl -fsSL https://raw.githubusercontent.com/<user>/caelestia-fedora/main/bootstrap.sh) --yes
+bash ~/.cache/caelestia-fedora/repo/install.sh --yes
 ```
 
-If you have baked your repository URL into the `DEFAULT_REPO_URL` variable at the
-top of `bootstrap.sh`, the environment variable can be omitted.
+`bootstrap.sh` supports the same authenticated flow once `gh auth login` has
+configured the git credential helper:
+
+```bash
+gh auth login
+bash <(gh api repos/FahmiMj/caelestia-fedora/contents/bootstrap.sh \
+        -H "Accept: application/vnd.github.raw")
+```
+
+If you make the repository public, the short anonymous form also works:
+
+```bash
+CAELESTIA_FEDORA_REPO=https://github.com/FahmiMj/caelestia-fedora.git \
+  bash <(curl -fsSL https://raw.githubusercontent.com/FahmiMj/caelestia-fedora/main/bootstrap.sh)
+```
 
 ### From a local checkout
 
 ```bash
-git clone <your-repo-url> caelestia-fedora
+gh repo clone FahmiMj/caelestia-fedora
 cd caelestia-fedora
 ./install.sh
 ```
@@ -60,23 +74,6 @@ Options (work with both `install.sh` and `bootstrap.sh`):
 ./install.sh --yes         # non-interactive, standard set
 ./install.sh --help
 ```
-
-## Publishing this repository
-
-The one-liner above needs the repo to be reachable. To publish it:
-
-```bash
-cd caelestia-fedora
-git init
-git add .
-git commit -m "Caelestia on Fedora installer"
-git branch -M main
-git remote add origin https://github.com/<user>/caelestia-fedora.git
-git push -u origin main
-```
-
-Then replace `<user>` in the one-liner (or set `DEFAULT_REPO_URL` in
-`bootstrap.sh`) and it is ready to run on any fresh Fedora machine.
 
 ## The Fedora screen-recording fix
 
