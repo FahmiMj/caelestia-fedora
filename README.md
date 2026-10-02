@@ -15,6 +15,16 @@ CLI and all — with the Fedora-specific workarounds already handled.**
 
 </div>
 
+> [!WARNING]
+> **Unofficial, community-made project.** This repository is an independent Fedora installer
+> for **[Caelestia](https://github.com/caelestia-dots/caelestia)**. It is **not affiliated with,
+> endorsed by, or maintained by the Caelestia project or its authors**, and it is not the
+> official installer. For the upstream project, its official (Arch-based) installer and its
+> documentation, use **[github.com/caelestia-dots](https://github.com/caelestia-dots)**.
+>
+> This installer was **written with the help of AI** and is provided as-is. Review the scripts
+> before running them.
+
 ---
 
 ## Overview
@@ -237,11 +247,22 @@ shellcheck -x install.sh setup/*.sh bootstrap.sh
 
 ## Credits
 
-- [Caelestia](https://github.com/caelestia-dots) by its authors — the shell, CLI and dotfiles
-  this installer deploys (GPL-3.0).
+- **[Caelestia](https://github.com/caelestia-dots/caelestia)** — the original project: the
+  shell, CLI and dotfiles this installer deploys (GPL-3.0). All credit for Caelestia belongs to
+  its authors; this repository only automates installing it on Fedora.
 - [Hyprland](https://hypr.land), [Quickshell](https://quickshell.org),
   [ml4w](https://github.com/mylinuxforwork/dotfiles) and the various COPR/RPM Fusion
   maintainers whose packaging makes this possible.
+
+## Disclaimer
+
+This is an **unofficial, community-made** Fedora installer for Caelestia. It is **not
+affiliated with, endorsed by, or supported by the [Caelestia project](https://github.com/caelestia-dots/caelestia)**
+or its authors. Please do **not** report issues with this installer to the upstream project —
+use this repository's issue tracker instead.
+
+The installer was **written with the assistance of AI**. It is provided "as is", without
+warranty; always review the scripts before running them, and use them at your own risk.
 
 ## License
 
