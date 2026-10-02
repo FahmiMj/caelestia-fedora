@@ -21,9 +21,6 @@ CLI and all — with the Fedora-specific workarounds already handled.**
 > endorsed by, or maintained by the Caelestia project or its authors**, and it is not the
 > official installer. For the upstream project, its official (Arch-based) installer and its
 > documentation, use **[github.com/caelestia-dots](https://github.com/caelestia-dots)**.
->
-> This installer was **written with the help of AI** and is provided as-is. Review the scripts
-> before running them.
 
 ---
 
@@ -71,43 +68,22 @@ Caelestia session from GDM when it finishes.
 
 ## Quick start
 
-### On a fresh Fedora machine (this repo is private)
-
-Authenticate with GitHub first, then clone and run the installer:
+On a fresh Fedora machine, one command clones the installer, then runs it:
 
 ```bash
-sudo dnf install -y gh
-gh auth login
-gh repo clone FahmiMj/caelestia-fedora ~/.cache/caelestia-fedora/repo
-bash ~/.cache/caelestia-fedora/repo/install.sh
+bash <(curl -fsSL https://raw.githubusercontent.com/FahmiMj/caelestia-fedora/main/bootstrap.sh)
 ```
 
-Fully unattended:
+Fully unattended (standard set, no prompts):
 
 ```bash
-bash ~/.cache/caelestia-fedora/repo/install.sh --yes
+bash <(curl -fsSL https://raw.githubusercontent.com/FahmiMj/caelestia-fedora/main/bootstrap.sh) --yes
 ```
 
-The `bootstrap.sh` entrypoint does the same clone-and-run in one step once `gh auth login`
-has configured the git credential helper:
+### From a checkout
 
 ```bash
-gh auth login
-bash <(gh api repos/FahmiMj/caelestia-fedora/contents/bootstrap.sh \
-        -H "Accept: application/vnd.github.raw")
-```
-
-### If the repository is public
-
-```bash
-CAELESTIA_FEDORA_REPO=https://github.com/FahmiMj/caelestia-fedora.git \
-  bash <(curl -fsSL https://raw.githubusercontent.com/FahmiMj/caelestia-fedora/main/bootstrap.sh)
-```
-
-### From an existing checkout
-
-```bash
-gh repo clone FahmiMj/caelestia-fedora
+git clone https://github.com/FahmiMj/caelestia-fedora
 cd caelestia-fedora
 ./install.sh
 ```
@@ -125,7 +101,6 @@ Both entrypoints accept the same flags:
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `CAELESTIA_REF` | `main` | Git ref (branch/tag) of the upstream components to install |
-| `CAELESTIA_FEDORA_REPO` | `https://github.com/FahmiMj/caelestia-fedora.git` | Source repo used by `bootstrap.sh` |
 
 ## What gets installed
 
@@ -193,8 +168,7 @@ Re-run the installer; user overrides are preserved and upstream components are r
 the ref named by `CAELESTIA_REF` (default `main`):
 
 ```bash
-gh repo clone FahmiMj/caelestia-fedora ~/.cache/caelestia-fedora/repo
-bash ~/.cache/caelestia-fedora/repo/install.sh
+bash <(curl -fsSL https://raw.githubusercontent.com/FahmiMj/caelestia-fedora/main/bootstrap.sh)
 ```
 
 Note that Caelestia's own `caelestia update` command is Arch-specific; on Fedora, updating
@@ -261,8 +235,8 @@ affiliated with, endorsed by, or supported by the [Caelestia project](https://gi
 or its authors. Please do **not** report issues with this installer to the upstream project —
 use this repository's issue tracker instead.
 
-The installer was **written with the assistance of AI**. It is provided "as is", without
-warranty; always review the scripts before running them, and use them at your own risk.
+The installer is provided "as is", without warranty; always review the scripts before running
+them, and use them at your own risk.
 
 ## License
 
