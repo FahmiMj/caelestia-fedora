@@ -7,34 +7,18 @@
 #   ./install.sh --yes           assume "yes" to all prompts (no TUI questions)
 #   ./install.sh --dry-run       show what would be done without changing anything
 #
-# When executed outside of a checkout (e.g. `bash <(curl ...)`), set
-# CAELESTIA_FEDORA_REPO to the git URL of this repository so the script can
-# clone it first.
+# To run this on a machine that does not have the repository yet, use
+# ./bootstrap.sh, which clones it and then calls this script.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="${SCRIPT_DIR}"
-
-# ---------------------------------------------------------------------------
-# Bootstrap: clone the repository if we were piped in from the network.
-# ---------------------------------------------------------------------------
-if [[ ! -d "${REPO_DIR}/setup" ]]; then
-    BOOTSTRAP_DIR="${XDG_CACHE_HOME:-${HOME}/.cache}/caelestia-fedora/repo"
-    if [[ -z "${CAELESTIA_FEDORA_REPO:-}" ]]; then
-        printf '%s\n' "Run this from the repository checkout, or set CAELESTIA_FEDORA_REPO" >&2
-        printf '%s\n' "to the git URL of your caelestia-fedora repository and try again." >&2
-        exit 1
-    fi
-    command -v git >/dev/null 2>&1 || { printf '%s\n' "git is required" >&2; exit 1; }
-    if [[ -d "${BOOTSTRAP_DIR}/.git" ]]; then
-        git -C "${BOOTSTRAP_DIR}" pull --ff-only
-    else
-        rm -rf "${BOOTSTRAP_DIR}"
-        git clone --depth=1 "${CAELESTIA_FEDORA_REPO}" "${BOOTSTRAP_DIR}"
-    fi
-    REPO_DIR="${BOOTSTRAP_DIR}"
-fi
 export REPO_DIR
+
+if [[ ! -d "${REPO_DIR}/setup" ]]; then
+    printf '%s\n' "This must be run from the repository checkout. Use ./bootstrap.sh to fetch it." >&2
+    exit 1
+fi
 
 # ---------------------------------------------------------------------------
 # Arguments
@@ -53,8 +37,9 @@ Usage:
   ./install.sh --help          show this help
 
 Environment:
-  CAELESTIA_FEDORA_REPO   git URL to clone when not run from a checkout
   CAELESTIA_REF           git ref (branch/tag) to install, defaults to "main"
+
+See ./bootstrap.sh for fetching this repository on a fresh machine.
 EOF
 }
 

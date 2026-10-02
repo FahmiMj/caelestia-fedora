@@ -10,7 +10,6 @@ install_fonts() {
     local dest="${XDG_DATA_HOME}/fonts/caelestia"
     ensure_dir "${dest}"
     run cp -f "${CONFIG_DIR}"/fonts/*.ttf "${dest}/"
-    run cp -f "${CONFIG_DIR}/fonts/GoogleSansFlex-LICENSE" "${dest}/"
     if have_cmd fc-cache; then
         run fc-cache -f "${dest}"
     fi

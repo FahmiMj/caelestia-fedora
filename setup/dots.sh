@@ -59,7 +59,6 @@ install_dots() {
     write_if_absent "${CONFIG_DIR}/caelestia/hypr-vars.lua" "${XDG_CONFIG_HOME}/caelestia/hypr-vars.lua"
     write_if_absent "${CONFIG_DIR}/caelestia/hypr-user.lua" "${XDG_CONFIG_HOME}/caelestia/hypr-user.lua"
     write_if_absent "${CONFIG_DIR}/caelestia/shell.json"    "${XDG_CONFIG_HOME}/caelestia/shell.json"
-    write_if_absent "${CONFIG_DIR}/caelestia/cli.json"     "${XDG_CONFIG_HOME}/caelestia/cli.json"
 
     if have_cmd xdg-user-dirs-update; then
         run xdg-user-dirs-update

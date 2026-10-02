@@ -82,8 +82,15 @@ setup_wallpapers() {
     local dir="${HOME}/Pictures/Wallpapers"
     ensure_dir "${dir}"
     if ! compgen -G "${dir}/*" >/dev/null 2>&1; then
-        run cp "${CONFIG_DIR}/wallpaper.webp" "${dir}/caelestia.webp"
-        ok "installed default wallpaper"
+        # Reuse the wallpaper shipped inside the Caelestia shell instead of
+        # vendoring a copy in this repository.
+        local src="${XDG_CONFIG_HOME}/quickshell/caelestia/assets/wallpaper.webp"
+        if [[ -f "${src}" ]]; then
+            run cp "${src}" "${dir}/caelestia.webp"
+            ok "installed default wallpaper"
+        else
+            warn "no default wallpaper available; add one to ${dir}"
+        fi
     else
         ok "wallpaper directory already populated"
     fi
