@@ -11,7 +11,8 @@ pkg_build_deps() {
     dnf_install \
         cmake ninja-build meson gcc-c++ pkgconf-pkg-config git \
         qt6-qtbase-devel qt6-qtdeclarative-devel qt6-qtshadertools-devel \
-        fftw-devel inih-devel iniparser-devel
+        fftw-devel inih-devel iniparser-devel \
+        libqalculate-devel pipewire-devel aubio-devel lm_sensors-devel
 }
 
 build_libcava() {
@@ -19,12 +20,14 @@ build_libcava() {
     local dir="${CAELESTIA_SRC}/cava"
     git_sync "${CAVA_REPO}" "${dir}"
     run rm -rf "${dir}/build"
+    # Install to /usr (not /usr/local) so libcava.pc lands on pkg-config's
+    # default search path and the shell's cmake can resolve it.
     run meson setup "${dir}/build" "${dir}" \
-        --prefix=/usr/local --buildtype=release -Dbuild_target=lib
+        --prefix=/usr --buildtype=release -Dbuild_target=lib
     run ninja -C "${dir}/build"
     srun ninja -C "${dir}/build" install
     srun ldconfig
-    ok "libcava installed to /usr/local"
+    ok "libcava installed to /usr"
 }
 
 build_m3shapes() {
