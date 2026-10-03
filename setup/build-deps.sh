@@ -11,7 +11,7 @@ pkg_build_deps() {
     dnf_install \
         cmake ninja-build meson gcc-c++ pkgconf-pkg-config git \
         qt6-qtbase-devel qt6-qtdeclarative-devel qt6-qtshadertools-devel \
-        fftw-devel inih-devel
+        fftw-devel inih-devel iniparser-devel
 }
 
 build_libcava() {
