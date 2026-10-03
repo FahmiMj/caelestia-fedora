@@ -110,7 +110,7 @@ virtual-machine mode, equivalent to `--vm`).
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `CAELESTIA_REF` | `main` | Git ref (branch/tag) of the upstream components to install |
-| `CAELESTIA_VM` | `0` | Set to `1` (or pass `--vm`) to apply the virtual-machine fixes |
+| `CAELESTIA_VM` | `0` | Set to `1` (or pass `--vm`) to force the virtual-machine fixes; they are also applied automatically when a known-broken VM GPU driver is detected |
 | `CAELESTIA_VMWARE_HW` | unset | Set in the session environment to disable the VMware software-rendering fallback |
 
 ## What gets installed
@@ -128,7 +128,7 @@ The installer runs seventeen ordered steps, each a self-contained script in `set
 | 7 | `fonts` | Install the bundled Caelestia fonts |
 | 8 | `dots` | Deploy the upstream dotfiles plus Fedora user overrides (incl. the fish config) |
 | 9 | `terminal` | Install the oh-my-posh prompt theme |
-| 10 | `vm-fixes` | When `CAELESTIA_VM=1`, enable software rendering for virtual machines |
+| 10 | `vm-fixes` | Enable software rendering for virtual machines (when selected, or auto-detected via `vmwgfx`/`vboxvideo`) |
 | 11 | `tools` | Install `caelestia-diag`, a read-only diagnostic collector |
 | 12 | `session` | Install the **Hyprland (Caelestia)** GDM/Wayland session |
 | 13 | `fedora-fixes` | Pick a working GPU video encoder and create a wallpaper folder |
@@ -228,11 +228,13 @@ installer created, if you want to return to your previous setup.
   hypervisor exposes surface-backed dmabufs as TTM handles, so Hyprland fails to release them
   and disconnects every GPU-accelerated Wayland client (Quickshell included). Symptoms include
   `unknown object (…), message attach(?oii)` and `error in client communication` in
-  `journalctl -b _COMM=Hyprland`. Pick the **Install Caelestia (VirtualBox)** option (or pass
-  `--vm`) to force software rendering (`LIBGL_ALWAYS_SOFTWARE=1` + `QSG_RHI_BACKEND=software`)
-  for the session; opt out with `CAELESTIA_VMWARE_HW=1` for the VMware auto-detection in the
-  launcher (and remove the appended lines from `~/.config/caelestia/hypr-user.lua`). The proper
-  fix is a small Hyprland patch (validated against 0.56.2) documented in
+  `journalctl -b _COMM=Hyprland`. The installer forces software rendering
+  (`LIBGL_ALWAYS_SOFTWARE=1` + `QSG_RHI_BACKEND=software`) for the session; this is applied
+  automatically when these drivers are detected (or always with the **Install Caelestia
+  (VirtualBox)** option / `--vm`). Opt out with `CAELESTIA_VMWARE_HW=1` for the VMware
+  auto-detection in the launcher (and remove the appended lines from
+  `~/.config/caelestia/hypr-user.lua`). The proper fix is a small Hyprland patch (validated
+  against 0.56.2) documented in
   [Hyprland discussion #12966](https://github.com/hyprwm/Hyprland/discussions/12966).
 - **Something else is wrong** — run `caelestia-diag` (installed by the `tools` step) and share
   the output. It collects session, process, shell-log, journal and GPU/EGL information without

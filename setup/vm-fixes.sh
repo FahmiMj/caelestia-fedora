@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Apply extra fixes for running Caelestia inside a virtual machine.
 #
-# Selected by the "Install Caelestia (VirtualBox)" installer option, which
-# exports CAELESTIA_VM=1. VM GPU drivers (VMware vmwgfx, VirtualBox vmsvga)
-# mishandle surface-backed dmabufs, so Hyprland disconnects every
+# Enabled by the "Install Caelestia (VirtualBox)" installer option (which
+# exports CAELESTIA_VM=1), and also applied automatically when a virtual GPU
+# driver known to mishandle surface-backed dmabufs is detected. On those
+# drivers (VMware vmwgfx, VirtualBox vmsvga) Hyprland disconnects every
 # GPU-accelerated Wayland client (the shell included) and the session renders
 # as a black screen with only the cursor. Forcing software rendering avoids it
 # until the upstream Hyprland fix lands
@@ -22,10 +23,28 @@ VM_ENV_BLOCK='
 hl.env("LIBGL_ALWAYS_SOFTWARE", "1")
 hl.env("QSG_RHI_BACKEND", "software")'
 
+# True when the guest runs a VM GPU driver known to break dmabuf sharing.
+known_broken_vm() {
+    [[ -d /sys/module/vmwgfx ]] && return 0     # VMware
+    [[ -d /sys/module/vboxvideo ]] && return 0  # VirtualBox (VMSVGA)
+    [[ -d /sys/module/vboxguest ]] && return 0  # VirtualBox guest additions
+    if [[ -r /sys/class/dmi/id/product_name ]] \
+        && grep -qi 'virtualbox' /sys/class/dmi/id/product_name; then
+        return 0
+    fi
+    return 1
+}
+
 apply_vm_fixes() {
     section "Virtual machine fixes"
-    if [[ "${CAELESTIA_VM:-0}" != "1" ]]; then
-        info "not a VM install; skipping"
+
+    local reason=""
+    if [[ "${CAELESTIA_VM:-0}" == "1" ]]; then
+        reason="selected install option"
+    elif known_broken_vm; then
+        reason="detected virtual-machine GPU driver"
+    else
+        info "no known-broken VM GPU driver detected; skipping"
         return 0
     fi
 
@@ -36,13 +55,13 @@ apply_vm_fixes() {
     fi
 
     if [[ "${DRY_RUN}" == "1" ]]; then
-        dry "append software-rendering hl.env block to ${target}"
+        dry "append software-rendering hl.env block to ${target} (${reason})"
         return 0
     fi
 
     ensure_dir "$(dirname "${target}")"
     printf '%s\n' "${VM_ENV_BLOCK}" >> "${target}"
-    ok "software rendering enabled for virtual machines"
+    ok "software rendering enabled (${reason})"
 }
 
 main() { apply_vm_fixes "$@"; }
