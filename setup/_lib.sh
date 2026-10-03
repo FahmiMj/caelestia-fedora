@@ -178,9 +178,14 @@ git_sync() {
     local repo="$1" dest="$2" ref="${3:-}"
     if [[ -d "${dest}/.git" ]]; then
         info "updating $(basename "${dest}")"
-        run git -C "${dest}" fetch --depth=1 origin
+        # Some upstream builds derive their version from `git describe`, which
+        # needs tags and history; unshallow any checkout created previously.
+        if [[ -f "$(git -C "${dest}" rev-parse --absolute-git-dir)/shallow" ]]; then
+            run git -C "${dest}" fetch --unshallow --tags origin
+        fi
+        run git -C "${dest}" fetch --tags origin
         if [[ -n "${ref}" ]]; then
-            run git -C "${dest}" fetch --depth=1 origin "${ref}"
+            run git -C "${dest}" fetch origin "${ref}"
             run git -C "${dest}" checkout --force FETCH_HEAD
         else
             run git -C "${dest}" reset --hard origin/HEAD
@@ -188,9 +193,9 @@ git_sync() {
     else
         run rm -rf "${dest}"
         if [[ -n "${ref}" ]]; then
-            run git clone --depth=1 --branch "${ref}" "${repo}" "${dest}"
+            run git clone --branch "${ref}" "${repo}" "${dest}"
         else
-            run git clone --depth=1 "${repo}" "${dest}"
+            run git clone "${repo}" "${dest}"
         fi
     fi
 }
