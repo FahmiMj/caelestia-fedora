@@ -1,0 +1,9 @@
+# Installer runtime artifacts
+*.log
+*.bak-*
+*.tmp
+
+# Editor / OS noise
+.DS_Store
+*.swp
+*~
