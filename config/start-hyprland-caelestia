@@ -3,6 +3,11 @@
 # Caelestia Fedora installer.
 export CAELESTIA_SESSION=1
 
+# GDM/Wayland sessions don't source the login shell's profile, so the per-user
+# bin dirs may be missing. The Caelestia CLI (pipx) lives in ~/.local/bin and is
+# launched by the Hyprland autostart, so make sure it is on PATH.
+export PATH="${HOME}/.local/bin:${HOME}/bin:${PATH}"
+
 if [[ -x /usr/bin/start-hyprland ]]; then
     exec /usr/bin/start-hyprland "$@"
 fi
