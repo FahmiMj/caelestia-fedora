@@ -8,6 +8,17 @@ export CAELESTIA_SESSION=1
 # launched by the Hyprland autostart, so make sure it is on PATH.
 export PATH="${HOME}/.local/bin:${HOME}/bin:${PATH}"
 
+# The upstream dotfiles expect these to be set by uwsm. We launch Hyprland
+# directly, so set them here: without this the shell can end up on the X11
+# (xcb) Qt platform and render nothing on a Hyprland/Wayland session.
+export XDG_CURRENT_DESKTOP=Hyprland
+export XDG_SESSION_TYPE=wayland
+export XDG_SESSION_DESKTOP=Hyprland
+export QT_QPA_PLATFORM='wayland;xcb'
+export GDK_BACKEND='wayland,x11'
+export ELECTRON_OZONE_PLATFORM_HINT='auto'
+export _JAVA_AWT_WM_NONREPARENTING=1
+
 if [[ -x /usr/bin/start-hyprland ]]; then
     exec /usr/bin/start-hyprland "$@"
 fi
