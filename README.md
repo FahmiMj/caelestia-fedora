@@ -199,6 +199,13 @@ installer created, if you want to return to your previous setup.
 - **The session doesn't appear in GDM** — confirm
   `/usr/share/wayland-sessions/hyprland-caelestia.desktop` exists and that you are on a
   Wayland-capable GPU/driver.
+- **Black screen then straight back to GDM** — Hyprland crashed at startup, usually because
+  the GPU/driver has no working EGL/DRM renderer. Check `~/.cache/hyprland/hyprlandCrashReport*.txt`
+  and `journalctl -b _COMM=Hyprland`. **On a VM** this almost always means 3D acceleration is
+  disabled: enable "Accelerate 3D graphics" in the VM's display settings, install
+  `open-vm-tools mesa-dri-drivers egl-utils`, and reboot. Verify with `ls -l /dev/dri` (expect
+  `renderD128`) and `eglinfo`. Without a 3D-capable GPU/vGPU profile, Hyprland cannot run in
+  that VM.
 - **The shell doesn't start** — check `caelestia shell -k` then `caelestia shell -d` from a
   terminal for errors; make sure it is also installed at
   `~/.config/quickshell/caelestia`.
