@@ -51,6 +51,10 @@ Caelestia session from GDM when it finishes.
   dependencies and a dedicated GDM/Wayland session.
 - **Fedora workarounds built in** — RPM Fusion + COPRs, from-source `libcava` and `M3Shapes`,
   GPU/VA-API probing, service enablement and GTK defaults.
+- **A familiar terminal** — `fish` with the oh-my-posh prompt, eza/git aliases and `fastfetch`
+  on every interactive shell.
+- **Virtual-machine mode** — the **Caelestia (VirtualBox)** install option forces software
+  rendering, so Caelestia comes up on VMware/VirtualBox instead of a black screen.
 - **Screen recording that actually works** — probes each render node and falls back to a
   supported hardware encoder (details [below](#the-fedora-screen-recording-fix)).
 - **Dry-run mode** — `--dry-run` prints every action without touching the system.
@@ -95,16 +99,23 @@ Both entrypoints accept the same flags:
 ```bash
 ./install.sh --dry-run     # print the plan, change nothing
 ./install.sh --yes         # non-interactive, standard set
+./install.sh --vm          # apply the virtual-machine fixes
 ./install.sh --help
 ```
+
+The interactive menu offers three install modes: **Install Caelestia (recommended)**,
+**Install Caelestia + choose optional apps**, and **Install Caelestia (VirtualBox)** (the
+virtual-machine mode, equivalent to `--vm`).
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `CAELESTIA_REF` | `main` | Git ref (branch/tag) of the upstream components to install |
+| `CAELESTIA_VM` | `0` | Set to `1` (or pass `--vm`) to apply the virtual-machine fixes |
+| `CAELESTIA_VMWARE_HW` | unset | Set in the session environment to disable the VMware software-rendering fallback |
 
 ## What gets installed
 
-The installer runs fourteen ordered steps, each a self-contained script in `setup/`:
+The installer runs seventeen ordered steps, each a self-contained script in `setup/`:
 
 | Step | Module | Description |
 | --- | --- | --- |
@@ -115,13 +126,16 @@ The installer runs fourteen ordered steps, each a self-contained script in `setu
 | 5 | `shell` | Build and install the Caelestia Quickshell config into `~/.config/quickshell/caelestia` |
 | 6 | `cli` | Install the `caelestia` CLI in an isolated `pipx` environment |
 | 7 | `fonts` | Install the bundled Caelestia fonts |
-| 8 | `dots` | Deploy the upstream dotfiles plus Fedora user overrides |
-| 9 | `session` | Install the **Hyprland (Caelestia)** GDM/Wayland session |
-| 10 | `fedora-fixes` | Pick a working GPU video encoder and create a wallpaper folder |
-| 11 | `desktop` | Enable services and set GTK/appearance defaults |
-| 12 | `gpu` | VA-API/Vulkan packages; optional NVIDIA driver prompt |
-| 13 | `extras` | Optional apps chosen in the TUI (firefox, nvim, zed, VS Code, Discord, …) |
-| 14 | `finish` | Generate the initial colour scheme and print next steps |
+| 8 | `dots` | Deploy the upstream dotfiles plus Fedora user overrides (incl. the fish config) |
+| 9 | `terminal` | Install the oh-my-posh prompt theme |
+| 10 | `vm-fixes` | When `CAELESTIA_VM=1`, enable software rendering for virtual machines |
+| 11 | `tools` | Install `caelestia-diag`, a read-only diagnostic collector |
+| 12 | `session` | Install the **Hyprland (Caelestia)** GDM/Wayland session |
+| 13 | `fedora-fixes` | Pick a working GPU video encoder and create a wallpaper folder |
+| 14 | `desktop` | Enable services and set GTK/appearance defaults |
+| 15 | `gpu` | VA-API/Vulkan packages; optional NVIDIA driver prompt |
+| 16 | `extras` | Optional apps chosen in the TUI (firefox, nvim, zed, VS Code, Discord, …) |
+| 17 | `finish` | Generate the initial colour scheme and print next steps |
 
 ## First login
 
@@ -153,9 +167,12 @@ bootstrap.sh                    fresh-install entrypoint (clone + run install.sh
 install.sh                      interactive installer / argument parsing / step runner
 setup/                          one script per step (all source setup/_lib.sh)
   _lib.sh                         shared helpers: logging, dnf, COPR, rpmfusion, git
-  preflight … finish              the fourteen steps above
+  preflight … finish              the steps above
+tools/
+  diag.sh                       read-only diagnostic collector, installed as caelestia-diag
 config/
-  caelestia/                    user overrides: hypr-vars.lua, hypr-user.lua, shell.json
+  caelestia/                    user overrides: hypr-vars.lua, hypr-user.lua, user-config.fish
+  ohmyposh/                     fish prompt theme (zen.toml, colors.json)
   wayland-sessions/             GDM session entry (hyprland-caelestia.desktop)
   start-hyprland-caelestia      session launcher installed to /usr/local/bin
   fonts/                        bundled fonts (see config/fonts/README.md)
@@ -206,15 +223,20 @@ installer created, if you want to return to your previous setup.
   `open-vm-tools mesa-dri-drivers egl-utils`, and reboot. Verify with `ls -l /dev/dri` (expect
   `renderD128`) and `eglinfo`. Without a 3D-capable GPU/vGPU profile, Hyprland cannot run in
   that VM.
-- **VMware guest: black screen with only the mouse cursor, shell never renders** — this is a
-  known `vmwgfx` driver bug, not an installer problem. VMware exposes surface-backed dmabufs as
-  TTM handles, so Hyprland fails to release them and disconnects every GPU-accelerated Wayland
-  client (Quickshell included). Symptoms include `unknown object (…), message attach(?oii)` and
-  `error in client communication` in `journalctl -b _COMM=Hyprland`. The installer works around
-  it automatically in VMware guests by forcing software rendering (`LIBGL_ALWAYS_SOFTWARE=1`);
-  set `CAELESTIA_VMWARE_HW=1` in the session environment to opt out. The proper fix is a small
-  Hyprland patch (validated against 0.56.2) documented in
+- **VM guest: black screen with only the mouse cursor, shell never renders** — this is a known
+  VM GPU driver bug (`vmwgfx` on VMware, `vmsvga` on VirtualBox), not an installer problem. The
+  hypervisor exposes surface-backed dmabufs as TTM handles, so Hyprland fails to release them
+  and disconnects every GPU-accelerated Wayland client (Quickshell included). Symptoms include
+  `unknown object (…), message attach(?oii)` and `error in client communication` in
+  `journalctl -b _COMM=Hyprland`. Pick the **Install Caelestia (VirtualBox)** option (or pass
+  `--vm`) to force software rendering (`LIBGL_ALWAYS_SOFTWARE=1` + `QSG_RHI_BACKEND=software`)
+  for the session; opt out with `CAELESTIA_VMWARE_HW=1` for the VMware auto-detection in the
+  launcher (and remove the appended lines from `~/.config/caelestia/hypr-user.lua`). The proper
+  fix is a small Hyprland patch (validated against 0.56.2) documented in
   [Hyprland discussion #12966](https://github.com/hyprwm/Hyprland/discussions/12966).
+- **Something else is wrong** — run `caelestia-diag` (installed by the `tools` step) and share
+  the output. It collects session, process, shell-log, journal and GPU/EGL information without
+  changing anything.
 - **The shell doesn't start** — check `caelestia shell -k` then `caelestia shell -d` from a
   terminal for errors; make sure it is also installed at
   `~/.config/quickshell/caelestia`.

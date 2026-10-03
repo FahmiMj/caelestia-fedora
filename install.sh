@@ -25,6 +25,7 @@ fi
 # ---------------------------------------------------------------------------
 ASSUME_YES=0
 DRY_RUN=0
+CAELESTIA_VM="${CAELESTIA_VM:-0}"
 
 usage() {
     cat <<'EOF'
@@ -34,10 +35,12 @@ Usage:
   ./install.sh                 interactive install
   ./install.sh --yes           assume "yes" to all prompts (no TUI questions)
   ./install.sh --dry-run       show what would be done without changing anything
+  ./install.sh --vm            apply virtual-machine fixes (software rendering)
   ./install.sh --help          show this help
 
 Environment:
   CAELESTIA_REF           git ref (branch/tag) to install, defaults to "main"
+  CAELESTIA_VM            set to 1 to apply the virtual-machine fixes
 
 See ./bootstrap.sh for fetching this repository on a fresh machine.
 EOF
@@ -47,12 +50,13 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         -y|--yes)     ASSUME_YES=1 ;;
         -n|--dry-run) DRY_RUN=1 ;;
+        --vm)         CAELESTIA_VM=1 ;;
         -h|--help)    usage; exit 0 ;;
         *) printf 'Unknown option: %s\n\n' "$1" >&2; usage >&2; exit 1 ;;
     esac
     shift
 done
-export ASSUME_YES DRY_RUN
+export ASSUME_YES DRY_RUN CAELESTIA_VM
 
 # shellcheck source=setup/_lib.sh
 source "${REPO_DIR}/setup/_lib.sh"
@@ -68,6 +72,9 @@ CORE_STEPS=(
     cli
     fonts
     dots
+    terminal
+    vm-fixes
+    tools
     session
     fedora-fixes
     desktop
@@ -124,10 +131,16 @@ main() {
             --header "What would you like to do?" \
             "Install Caelestia (recommended)" \
             "Install Caelestia + choose optional apps" \
+            "Install Caelestia (VirtualBox)" \
             "Exit")"
         case "${action}" in
             "Install Caelestia + choose optional apps")
                 mapfile -t extras < <(choose_extras)
+                ;;
+            "Install Caelestia (VirtualBox)")
+                CAELESTIA_VM=1
+                export CAELESTIA_VM
+                info "virtual-machine fixes will be applied"
                 ;;
             "Install Caelestia (recommended)")
                 ;;

@@ -50,9 +50,16 @@ install_dots() {
     done
     copy_file "${dots}/starship.toml" "${XDG_CONFIG_HOME}/starship.toml"
 
-    # fish component post_install steps from the upstream manifest.
+    # fish component post_install step from the upstream manifest: a personal
+    # config that fish/config.fish sources last. Seed it from this repository
+    # when it is missing or still empty (earlier installs created it empty).
     ensure_dir "${XDG_CONFIG_HOME}/caelestia"
-    run touch "${XDG_CONFIG_HOME}/caelestia/user-config.fish"
+    local user_config="${XDG_CONFIG_HOME}/caelestia/user-config.fish"
+    if [[ ! -s "${user_config}" ]]; then
+        run cp "${CONFIG_DIR}/caelestia/user-config.fish" "${user_config}"
+    else
+        info "keeping existing ${user_config}"
+    fi
 
     section "Caelestia user overrides"
     ensure_dir "${XDG_CONFIG_HOME}/caelestia"

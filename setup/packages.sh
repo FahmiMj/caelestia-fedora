@@ -60,7 +60,7 @@ pkg_apps() {
     section "Shell tools"
     dnf_install \
         eza zoxide direnv bat ripgrep ydotool gitui \
-        jetbrains-mono-fonts
+        oh-my-posh jetbrains-mono-fonts
 }
 
 pkg_gpu() {
