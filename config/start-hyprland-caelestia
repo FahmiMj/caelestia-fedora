@@ -19,6 +19,16 @@ export GDK_BACKEND='wayland,x11'
 export ELECTRON_OZONE_PLATFORM_HINT='auto'
 export _JAVA_AWT_WM_NONREPARENTING=1
 
+# VMware's vmwgfx driver mishandles surface-backed dmabufs, so Hyprland kills
+# every GPU-accelerated Wayland client (the Caelestia shell included) and the
+# session renders as a black screen. Until the upstream Hyprland fix lands
+# (https://github.com/hyprwm/Hyprland/discussions/12966), fall back to software
+# rendering inside VMware. Set CAELESTIA_VMWARE_HW=1 to opt out.
+if [ -d /sys/module/vmwgfx ] && [ -z "${CAELESTIA_VMWARE_HW:-}" ]; then
+    export LIBGL_ALWAYS_SOFTWARE=1
+    export QSG_RHI_BACKEND=software
+fi
+
 if [[ -x /usr/bin/start-hyprland ]]; then
     exec /usr/bin/start-hyprland "$@"
 fi

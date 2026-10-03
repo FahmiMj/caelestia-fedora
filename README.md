@@ -206,6 +206,15 @@ installer created, if you want to return to your previous setup.
   `open-vm-tools mesa-dri-drivers egl-utils`, and reboot. Verify with `ls -l /dev/dri` (expect
   `renderD128`) and `eglinfo`. Without a 3D-capable GPU/vGPU profile, Hyprland cannot run in
   that VM.
+- **VMware guest: black screen with only the mouse cursor, shell never renders** — this is a
+  known `vmwgfx` driver bug, not an installer problem. VMware exposes surface-backed dmabufs as
+  TTM handles, so Hyprland fails to release them and disconnects every GPU-accelerated Wayland
+  client (Quickshell included). Symptoms include `unknown object (…), message attach(?oii)` and
+  `error in client communication` in `journalctl -b _COMM=Hyprland`. The installer works around
+  it automatically in VMware guests by forcing software rendering (`LIBGL_ALWAYS_SOFTWARE=1`);
+  set `CAELESTIA_VMWARE_HW=1` in the session environment to opt out. The proper fix is a small
+  Hyprland patch (validated against 0.56.2) documented in
+  [Hyprland discussion #12966](https://github.com/hyprwm/Hyprland/discussions/12966).
 - **The shell doesn't start** — check `caelestia shell -k` then `caelestia shell -d` from a
   terminal for errors; make sure it is also installed at
   `~/.config/quickshell/caelestia`.
