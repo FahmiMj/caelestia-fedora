@@ -131,7 +131,11 @@ dnf_install() {
         return 0
     fi
     info "dnf install: ${want[*]}"
-    srun dnf install -y --skip-unavailable "${want[@]}"
+    if ! srun dnf install -y --skip-unavailable "${want[@]}"; then
+        warn "some packages could not be installed together; retrying with --skip-broken"
+        srun dnf install -y --skip-unavailable --skip-broken "${want[@]}" \
+            || warn "some packages failed to install; review the output above"
+    fi
 }
 
 copr_enable() {

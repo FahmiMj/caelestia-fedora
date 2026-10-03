@@ -15,8 +15,16 @@ pkg_core() {
 
     section "Core: shell dependencies"
     dnf_install \
-        ddcutil brightnessctl lm_sensors aubio libqalculate \
-        power-profiles-daemon
+        ddcutil brightnessctl lm_sensors aubio libqalculate
+
+    # Fedora Workstation ships tuned-ppd, which provides the same ppd-service
+    # (net.hadess.PowerProfiles) and conflicts with power-profiles-daemon, so
+    # only install ours when no provider is present.
+    if rpm -q --whatprovides ppd-service >/dev/null 2>&1; then
+        ok "power profiles provider already present"
+    else
+        dnf_install power-profiles-daemon
+    fi
 
     section "Core: audio"
     dnf_install \
