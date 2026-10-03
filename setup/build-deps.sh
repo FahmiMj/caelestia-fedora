@@ -19,7 +19,7 @@ build_libcava() {
     local dir="${CAELESTIA_SRC}/cava"
     git_sync "${CAVA_REPO}" "${dir}"
     run rm -rf "${dir}/build"
-    run meson setup "${dir}/build" \
+    run meson setup "${dir}/build" "${dir}" \
         --prefix=/usr/local --buildtype=release -Dbuild_target=lib
     run ninja -C "${dir}/build"
     srun ninja -C "${dir}/build" install
