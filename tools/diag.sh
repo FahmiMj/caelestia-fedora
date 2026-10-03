@@ -21,9 +21,11 @@ hr "processes"
 pgrep -a -f 'Hyprland|gnome-shell|start-hyprland|quickshell|caelestia' 2>&1 || true
 
 hr "runtime dir"
-ls -la "$rt" 2>&1 | grep -E 'wayland|hypr|quickshell' || true
+for f in "$rt"/wayland* "$rt"/hypr "$rt"/quickshell; do
+    [ -e "$f" ] && ls -lad "$f"
+done
 
-hid="$(ls "$rt/hypr" 2>/dev/null | head -1)"
+hid="$(find "$rt/hypr" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null | head -1)"
 hr "hypr instances"
 printf 'HYPRLAND_INSTANCE_SIGNATURE=%s\n' "${hid:-<none>}"
 ls -la "$rt/hypr" 2>&1 || true
