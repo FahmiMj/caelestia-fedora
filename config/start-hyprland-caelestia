@@ -29,6 +29,26 @@ if [ -d /sys/module/vmwgfx ] && [ -z "${CAELESTIA_VMWARE_HW:-}" ]; then
     export QSG_RHI_BACKEND=software
 fi
 
+# Caelestia config directories (used by the Hyprland entry point and shell).
+export HYPRLAND_CAEL_CONFIG_DIR="$HOME/.config/caelestia-hypr"
+export CAELESTIA_CONFIG_DIR="$HOME/.config/caelestia"
+export STARSHIP_CONFIG="$HOME/.config/caelestia-starship.toml"
+export QML_IMPORT_PATH="/usr/local/lib64/qt6/qml:${QML_IMPORT_PATH:-}"
+
+# NVIDIA Wayland workarounds (RTX 4050 and similar).
+# Applied when the proprietary NVIDIA driver is in use.
+if lspci 2>/dev/null | grep -qi 'nvidia' && lsmod 2>/dev/null | grep -qi '^nvidia'; then
+    export WLR_NO_HARDWARE_CURSORS=1
+    export WLR_RENDERER_ALLOW_SOFTWARE=1
+    export GBM_BACKEND=nvidia-drm
+    export __GLX_VENDOR_LIBRARY_NAME=nvidia
+    export LIBVA_DRIVER_NAME=nvidia
+    export NVD_BACKEND=direct
+fi
+
+# Tell hyprmod to use the caelestia managed config in this session.
+gsettings set io.github.bluemancz.hyprmod config-path "$HOME/.config/caelestia-hypr/hyprland-gui.lua" 2>/dev/null || true
+
 if [[ -x /usr/bin/start-hyprland ]]; then
     exec /usr/bin/start-hyprland "$@"
 fi

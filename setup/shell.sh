@@ -28,6 +28,21 @@ install_shell() {
     # cmake --install runs as root and may drop root-owned files into the config
     # directory; hand them back to the user.
     srun chown -R "${USER}:${USER}" "${dir}"
+
+    # Fedora quickshell isolation fix:
+    # The shell QML imports `qs.services`, `qs.components`, `qs.utils` but the
+    # installed tree only has services/, components/, utils/ at the top level
+    # (no qs/ namespace directory). Quickshell resolves `import qs.services`
+    # relative to the config dir, so create a qs/ symlink namespace.
+    # See: https://github.com/FahmiMj/caelestia-fedora (install logs, BUG 5/7)
+    local qsdir="${dir}/qs"
+    ensure_dir "${qsdir}/components"
+    ln -sf ../services  "${qsdir}/services"
+    ln -sf ../utils     "${qsdir}/utils"
+    ln -sf ../../components/containers "${qsdir}/components/containers"
+    ln -sf ../../components/filedialog "${qsdir}/components/filedialog"
+    ln -sf ../../components/images     "${qsdir}/components/images"
+
     ok "shell installed to ${dir}"
 }
 

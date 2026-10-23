@@ -123,14 +123,14 @@ The installer runs seventeen ordered steps, each a self-contained script in `set
 | 2 | `repos` | Enable RPM Fusion and COPRs (`lionheartp/Hyprland`, `peterwu/rendezvous`, `tofik/nwg-shell`) |
 | 3 | `packages` | Install compositor, shell dependencies, audio, networking, apps and tools |
 | 4 | `build-deps` | Build `libcava` and the `M3Shapes` QML module from source |
-| 5 | `shell` | Build and install the Caelestia Quickshell config into `~/.config/quickshell/caelestia` |
-| 6 | `cli` | Install the `caelestia` CLI in an isolated `pipx` environment |
+| 5 | `shell` | Build and install the Caelestia Quickshell config into `~/.config/quickshell/caelestia` (adds `qs/` namespace symlinks so `import qs.services` etc. resolve) |
+| 6 | `cli` | Install the `caelestia` CLI in an isolated `pipx` environment (patched to use path-based `qs -p` launch) |
 | 7 | `fonts` | Install the bundled Caelestia fonts |
-| 8 | `dots` | Deploy the upstream dotfiles plus Fedora user overrides (incl. the fish config) |
+| 8 | `dots` | Deploy the upstream dotfiles plus Fedora user overrides (incl. the fish config); ensures `scheme/current.lua` exists; deploys fastfetch config |
 | 9 | `terminal` | Install the oh-my-posh prompt theme |
 | 10 | `vm-fixes` | Enable software rendering for virtual machines (when selected, or auto-detected via `vmwgfx`/`vboxvideo`) |
 | 11 | `tools` | Install `caelestia-diag`, a read-only diagnostic collector |
-| 12 | `session` | Install the **Hyprland (Caelestia)** GDM/Wayland session |
+| 12 | `session` | Install the **Hyprland (Caelestia)** GDM/Wayland session (with NVIDIA env var workarounds) |
 | 13 | `fedora-fixes` | Pick a working GPU video encoder and create a wallpaper folder |
 | 14 | `desktop` | Enable services and set GTK/appearance defaults |
 | 15 | `gpu` | VA-API/Vulkan packages; optional NVIDIA driver prompt |
@@ -242,6 +242,20 @@ installer created, if you want to return to your previous setup.
 - **The shell doesn't start** — check `caelestia shell -k` then `caelestia shell -d` from a
   terminal for errors; make sure it is also installed at
   `~/.config/quickshell/caelestia`.
+- **Quickshell loads the wrong config (ml4w instead of caelestia)** — Quickshell treats
+  `~/.config/quickshell/shell.qml` as the default config and ignores subdirectories when it
+  exists. The installer already patches the CLI and session to use path-based launch
+  (`qs -p ~/.config/quickshell/caelestia`), but if you launch the shell manually use
+  `qs -p ~/.config/quickshell/caelestia -n` rather than `qs -c caelestia -n`.
+- **`module "qs.services" is not installed`** — the shell QML imports `qs.services`,
+  `qs.components`, `qs.utils` but only top-level `services/`, `components/`, `utils/`
+  directories exist. The `shell` step creates `qs/` symlinks automatically; if you see this
+  after a manual shell update, re-run the installer or create the symlinks in
+  `~/.config/quickshell/caelestia/qs/`.
+- **`scheme/current.lua not found`** — Hyprland variables require
+  `~/.config/hypr/scheme/current.lua`. The `dots` step copies it from
+  `scheme/default.lua` if missing; if you see nil-variable errors, copy it manually:
+  `cp ~/.config/hypr/scheme/default.lua ~/.config/hypr/scheme/current.lua`.
 - **Recording produces a black/failed file** — see
   [the recording fix](#the-fedora-screen-recording-fix); some setups need `-c mp4` in the
   same `extraArgs` list.

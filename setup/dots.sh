@@ -50,6 +50,17 @@ install_dots() {
     done
     copy_file "${dots}/starship.toml" "${XDG_CONFIG_HOME}/starship.toml"
 
+    # Hyprland variables.lua requires scheme.current; ensure it exists by
+    # copying from scheme.default. Without this, every vars.* reference is nil
+    # and Hyprland --verify-config fails with cascading errors.
+    # See: install logs, BUG 6/7 (scheme/current.lua missing)
+    if [[ -f "${dots}/hypr/scheme/default.lua" && ! -f "${dots}/hypr/scheme/current.lua" ]]; then
+        run cp "${dots}/hypr/scheme/default.lua" "${dots}/hypr/scheme/current.lua"
+    fi
+    if [[ -f "${XDG_CONFIG_HOME}/hypr/scheme/default.lua" && ! -f "${XDG_CONFIG_HOME}/hypr/scheme/current.lua" ]]; then
+        run cp "${XDG_CONFIG_HOME}/hypr/scheme/default.lua" "${XDG_CONFIG_HOME}/hypr/scheme/current.lua"
+    fi
+
     # fish component post_install step from the upstream manifest: a personal
     # config that fish/config.fish sources last. Seed it from this repository
     # when it is missing or still empty (earlier installs created it empty).
@@ -66,6 +77,7 @@ install_dots() {
     write_if_absent "${CONFIG_DIR}/caelestia/hypr-vars.lua" "${XDG_CONFIG_HOME}/caelestia/hypr-vars.lua"
     write_if_absent "${CONFIG_DIR}/caelestia/hypr-user.lua" "${XDG_CONFIG_HOME}/caelestia/hypr-user.lua"
     write_if_absent "${CONFIG_DIR}/caelestia/shell.json"    "${XDG_CONFIG_HOME}/caelestia/shell.json"
+    write_if_absent "${CONFIG_DIR}/caelestia/fastfetch/config.jsonc" "${XDG_CONFIG_HOME}/caelestia-fastfetch/config.jsonc"
 
     if have_cmd xdg-user-dirs-update; then
         run xdg-user-dirs-update

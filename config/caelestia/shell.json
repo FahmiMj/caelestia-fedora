@@ -1,7 +1,232 @@
 {
     "appearance": {
+        "font": {
+            "body": {
+                "family": "Rubik"
+            },
+            "clock": "Rubik",
+            "headline": {
+                "family": "Rubik"
+            },
+            "icon": {
+                "family": "Material Symbols Rounded"
+            },
+            "label": {
+                "family": "Rubik"
+            },
+            "mono": {
+                "family": "CaskaydiaCove Nerd Font"
+            },
+            "title": {
+                "family": "Rubik"
+            },
+            "workspaces": "Rubik"
+        },
         "transparency": {
-            "enabled": true
+            "enabled": false
         }
+    },
+    "bar": {
+        "clock": {
+            "background": false,
+            "showDate": true,
+            "showSeconds": false
+        },
+        "persistent": true,
+        "scrollActions": {
+            "volume": true,
+            "workspaces": true
+        },
+        "showOnHover": true,
+        "tray": {
+            "background": false,
+            "compact": false,
+            "recolour": false
+        },
+        "workspaces": {
+            "activeIndicator": true,
+            "activeTrail": true,
+            "occupiedBg": false,
+            "showUnoccupied": true,
+            "shown": 5
+        }
+    },
+    "dashboard": {
+        "enabled": true
+    },
+    "enabled": true,
+    "general": {
+        "apps": {
+            "audio": [
+                "pwvucontrol"
+            ],
+            "explorer": [
+                "thunar"
+            ],
+            "playback": [
+                "mpv"
+            ],
+            "terminal": [
+                "foot"
+            ]
+        }
+    },
+    "launcher": {
+        "actionPrefix": ">",
+        "actions": [
+            {
+                "command": [
+                    "autocomplete",
+                    "calc"
+                ],
+                "dangerous": false,
+                "description": "Do simple math equations (powered by Qalc)",
+                "enabled": true,
+                "icon": "calculate",
+                "name": "Calculator"
+            },
+            {
+                "command": [
+                    "autocomplete",
+                    "scheme"
+                ],
+                "dangerous": false,
+                "description": "Change the current colour scheme",
+                "enabled": true,
+                "icon": "palette",
+                "name": "Scheme"
+            },
+            {
+                "command": [
+                    "autocomplete",
+                    "wallpaper"
+                ],
+                "dangerous": false,
+                "description": "Change the current wallpaper",
+                "enabled": true,
+                "icon": "image",
+                "name": "Wallpaper"
+            },
+            {
+                "command": [
+                    "autocomplete",
+                    "variant"
+                ],
+                "dangerous": false,
+                "description": "Change the current scheme variant",
+                "enabled": true,
+                "icon": "colors",
+                "name": "Variant"
+            },
+            {
+                "command": [
+                    "$HOME/.local/bin/caelestia",
+                    "wallpaper",
+                    "-r"
+                ],
+                "dangerous": false,
+                "description": "Switch to a random wallpaper",
+                "enabled": true,
+                "icon": "casino",
+                "name": "Random"
+            },
+            {
+                "command": [
+                    "setMode",
+                    "light"
+                ],
+                "dangerous": false,
+                "description": "Change the scheme to light mode",
+                "enabled": true,
+                "icon": "light_mode",
+                "name": "Light"
+            },
+            {
+                "command": [
+                    "setMode",
+                    "dark"
+                ],
+                "dangerous": false,
+                "description": "Change the scheme to dark mode",
+                "enabled": true,
+                "icon": "dark_mode",
+                "name": "Dark"
+            },
+            {
+                "command": [
+                    "qs",
+                    "-p",
+                    "$HOME/.config/quickshell/caelestia",
+                    "ipc",
+                    "call",
+                    "nexus",
+                    "open"
+                ],
+                "dangerous": false,
+                "description": "Configure the shell (open nexus)",
+                "enabled": true,
+                "icon": "settings",
+                "name": "Settings"
+            },
+            {
+                "command": [
+                    "poweroff"
+                ],
+                "dangerous": true,
+                "description": "Shutdown the system",
+                "enabled": true,
+                "icon": "power_settings_new",
+                "name": "Shutdown"
+            },
+            {
+                "command": [
+                    "reboot"
+                ],
+                "dangerous": true,
+                "description": "Reboot the system",
+                "enabled": true,
+                "icon": "cached",
+                "name": "Reboot"
+            },
+            {
+                "command": [
+                    "logout"
+                ],
+                "dangerous": true,
+                "description": "Log out of the current session",
+                "enabled": true,
+                "icon": "exit_to_app",
+                "name": "Logout"
+            },
+            {
+                "command": [
+                    "loginctl",
+                    "lock-session"
+                ],
+                "dangerous": false,
+                "description": "Lock the current session",
+                "enabled": true,
+                "icon": "lock",
+                "name": "Lock"
+            },
+            {
+                "command": [
+                    "suspendThenHibernate"
+                ],
+                "dangerous": false,
+                "description": "Suspend then hibernate",
+                "enabled": true,
+                "icon": "bedtime",
+                "name": "Sleep"
+            }
+        ],
+        "enabled": true,
+        "maxShown": 7
+    },
+    "services": {
+        "audioIncrement": 0.05,
+        "gpuType": "Nvidia",
+        "maxVolume": 1,
+        "visualiserBars": 60
     }
 }

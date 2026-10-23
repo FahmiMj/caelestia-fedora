@@ -51,7 +51,7 @@ printf -- '--- caelestia entry ---\n'
 cat /usr/share/wayland-sessions/hyprland-caelestia.desktop 2>&1 || true
 
 hr "quickshell instances"
-qs -c caelestia list 2>&1 || true
+qs -p "${HOME}/.config/quickshell/caelestia" list 2>&1 || true
 
 hr "quickshell logs (newest)"
 newest="$(find "$rt/quickshell" -name '*.qslog' -printf '%T@ %p\n' 2>/dev/null | sort -n | tail -1 | awk '{print $2}')"
