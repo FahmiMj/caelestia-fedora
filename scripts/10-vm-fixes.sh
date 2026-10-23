@@ -10,9 +10,11 @@
 # until the upstream Hyprland fix lands
 # (https://github.com/hyprwm/Hyprland/discussions/12966).
 set -euo pipefail
-REPO_DIR="${REPO_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
-# shellcheck source=setup/_lib.sh
-source "${REPO_DIR}/setup/_lib.sh"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/log.sh
+source "${SCRIPT_DIR}/lib/log.sh"
+
+section() { printf '\n  == %s ==\n' "$1"; }
 
 VM_ENV_BLOCK='
 
@@ -55,11 +57,11 @@ apply_vm_fixes() {
     fi
 
     if [[ "${DRY_RUN}" == "1" ]]; then
-        dry "append software-rendering hl.env block to ${target} (${reason})"
+        info "[dry-run] append software-rendering hl.env block to ${target} (${reason})"
         return 0
     fi
 
-    ensure_dir "$(dirname "${target}")"
+    mkdir -p "$(dirname "${target}")"
     printf '%s\n' "${VM_ENV_BLOCK}" >> "${target}"
     ok "software rendering enabled (${reason})"
 }

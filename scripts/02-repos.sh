@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # Enable the third-party repositories Caelestia needs on Fedora.
 set -euo pipefail
-REPO_DIR="${REPO_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
-# shellcheck source=setup/_lib.sh
-source "${REPO_DIR}/setup/_lib.sh"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/log.sh
+source "${SCRIPT_DIR}/lib/log.sh"
+# shellcheck source=scripts/lib/privileges.sh
+source "${SCRIPT_DIR}/lib/privileges.sh"
+# shellcheck source=scripts/lib/packages.sh
+source "${SCRIPT_DIR}/lib/packages.sh"
+
+section() { printf '\n  == %s ==\n' "$1"; }
 
 main() {
     section "Repositories"
@@ -18,7 +24,7 @@ main() {
     copr_enable tofik/nwg-shell
 
     info "refreshing metadata"
-    srun dnf makecache -y
+    caelestia_sudo dnf makecache -y
     ok "repositories ready"
 }
 

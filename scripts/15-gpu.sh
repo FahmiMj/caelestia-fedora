@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
 # GPU and hardware media acceleration.
 set -euo pipefail
-REPO_DIR="${REPO_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
-# shellcheck source=setup/_lib.sh
-source "${REPO_DIR}/setup/_lib.sh"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/log.sh
+source "${SCRIPT_DIR}/lib/log.sh"
+# shellcheck source=scripts/lib/privileges.sh
+source "${SCRIPT_DIR}/lib/privileges.sh"
+# shellcheck source=scripts/lib/packages.sh
+source "${SCRIPT_DIR}/lib/packages.sh"
+
+section() { printf '\n  == %s ==\n' "$1"; }
+
+have_cmd() { command -v "$1" >/dev/null 2>&1; }
 
 maybe_nvidia() {
     dnf_install pciutils

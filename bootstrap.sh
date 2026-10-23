@@ -42,6 +42,9 @@ while [[ $# -gt 0 ]]; do
         --repo=*) repo_url="${1#*=}"; shift ;;
         --ref)    REF="${2:-}"; shift 2 ;;
         --ref=*)  REF="${1#*=}"; shift ;;
+        --yes)    export ASSUME_YES=1; shift ;;
+        --dry-run) export DRY_RUN=1; shift ;;
+        --vm)     export CAELESTIA_VM=1; shift ;;
         *)        args+=("$1"); shift ;;
     esac
 done
@@ -50,21 +53,6 @@ done
 
 ensure_cmd git git
 ensure_cmd curl curl
-
-mkdir -p "${STATE_DIR}"
-if [[ -d "${REPO_DIR}/.git" ]]; then
-    info "updating existing checkout in ${REPO_DIR}"
-    git -C "${REPO_DIR}" fetch --depth=1 origin "${REF}"
-    git -C "${REPO_DIR}" checkout --force FETCH_HEAD
-else
-    rm -rf "${REPO_DIR}"
-    info "cloning ${repo_url} (${REF})"
-    if ! git clone --depth=1 --branch "${REF}" "${repo_url}" "${REPO_DIR}" 2>/dev/null; then
-        rm -rf "${REPO_DIR}"
-        info "branch/tag '${REF}' not found; cloning the default branch"
-        git clone --depth=1 "${repo_url}" "${REPO_DIR}"
-    fi
-fi
 
 export CAELESTIA_FEDORA_REPO="${repo_url}"
 export CAELESTIA_REF="${REF}"

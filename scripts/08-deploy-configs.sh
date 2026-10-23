@@ -2,9 +2,25 @@
 # Deploy the Caelestia dotfiles (Hyprland config + default app configs) and the
 # Fedora-specific user overrides.
 set -euo pipefail
-REPO_DIR="${REPO_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
-# shellcheck source=setup/_lib.sh
-source "${REPO_DIR}/setup/_lib.sh"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/log.sh
+source "${SCRIPT_DIR}/lib/log.sh"
+# shellcheck source=scripts/lib/privileges.sh
+source "${SCRIPT_DIR}/lib/privileges.sh"
+
+section() { printf '\n  == %s ==\n' "$1"; }
+
+have_cmd() { command -v "$1" >/dev/null 2>&1; }
+
+backup_path() {
+    local path="$1" bak
+    [[ -e "${path}" || -L "${path}" ]] || return 0
+    bak="${path}.bak-$(date +%Y%m%d-%H%M%S)"
+    warn "backing up ${path} -> ${bak}"
+    mv "${path}" "${bak}"
+}
+
+ensure_dir() { mkdir -p "$@"; }
 
 copy_tree() {
     local src="$1" dest="$2"
@@ -14,7 +30,7 @@ copy_tree() {
     fi
     backup_path "${dest}"
     ensure_dir "$(dirname "${dest}")"
-    run cp -rT "${src}" "${dest}"
+    cp -rT "${src}" "${dest}"
 }
 
 copy_file() {
@@ -25,10 +41,20 @@ copy_file() {
     fi
     backup_path "${dest}"
     ensure_dir "$(dirname "${dest}")"
-    run cp "${src}" "${dest}"
+    cp "${src}" "${dest}"
 }
 
-install_dots() {
+write_if_absent() {
+    local src="$1" dest="$2"
+    if [[ -e "${dest}" ]]; then
+        info "keeping existing ${dest}"
+        return 0
+    fi
+    ensure_dir "$(dirname "${dest}")"
+    cp "${src}" "${dest}"
+}
+
+main() {
     section "Caelestia dotfiles"
     local dots="${CAELESTIA_SRC}/caelestia"
     git_sync "${CAELESTIA_DOTS_REPO}" "${dots}" "${CAELESTIA_REF}"
@@ -55,10 +81,10 @@ install_dots() {
     # and Hyprland --verify-config fails with cascading errors.
     # See: install logs, BUG 6/7 (scheme/current.lua missing)
     if [[ -f "${dots}/hypr/scheme/default.lua" && ! -f "${dots}/hypr/scheme/current.lua" ]]; then
-        run cp "${dots}/hypr/scheme/default.lua" "${dots}/hypr/scheme/current.lua"
+        cp "${dots}/hypr/scheme/default.lua" "${dots}/hypr/scheme/current.lua"
     fi
     if [[ -f "${XDG_CONFIG_HOME}/hypr/scheme/default.lua" && ! -f "${XDG_CONFIG_HOME}/hypr/scheme/current.lua" ]]; then
-        run cp "${XDG_CONFIG_HOME}/hypr/scheme/default.lua" "${XDG_CONFIG_HOME}/hypr/scheme/current.lua"
+        cp "${XDG_CONFIG_HOME}/hypr/scheme/default.lua" "${XDG_CONFIG_HOME}/hypr/scheme/current.lua"
     fi
 
     # fish component post_install step from the upstream manifest: a personal
@@ -67,7 +93,7 @@ install_dots() {
     ensure_dir "${XDG_CONFIG_HOME}/caelestia"
     local user_config="${XDG_CONFIG_HOME}/caelestia/user-config.fish"
     if [[ ! -s "${user_config}" ]]; then
-        run cp "${CONFIG_DIR}/caelestia/user-config.fish" "${user_config}"
+        cp "${CONFIG_DIR}/caelestia/user-config.fish" "${user_config}"
     else
         info "keeping existing ${user_config}"
     fi
@@ -80,7 +106,7 @@ install_dots() {
     write_if_absent "${CONFIG_DIR}/caelestia/fastfetch/config.jsonc" "${XDG_CONFIG_HOME}/caelestia-fastfetch/config.jsonc"
 
     if have_cmd xdg-user-dirs-update; then
-        run xdg-user-dirs-update
+        xdg-user-dirs-update
     fi
     ok "dotfiles deployed"
 }

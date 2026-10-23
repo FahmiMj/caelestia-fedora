@@ -4,9 +4,13 @@
 #     defaults to H.264, which many Intel iGPUs cannot encode),
 #   * create a wallpaper directory with a default image.
 set -euo pipefail
-REPO_DIR="${REPO_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
-# shellcheck source=setup/_lib.sh
-source "${REPO_DIR}/setup/_lib.sh"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/log.sh
+source "${SCRIPT_DIR}/lib/log.sh"
+
+section() { printf '\n  == %s ==\n' "$1"; }
+
+have_cmd() { command -v "$1" >/dev/null 2>&1; }
 
 # Print the best available hardware encoder (h264/hevc/av1/vp9/vp8), or nothing.
 detect_encoder() {
@@ -50,11 +54,11 @@ apply_record_fix() {
     file="${XDG_CONFIG_HOME}/caelestia/cli.json"
 
     if [[ "${DRY_RUN}" == "1" ]]; then
-        dry "detect VA-API encoder (found: ${enc:-none}) and update ${file}"
+        info "[dry-run] detect VA-API encoder (found: ${enc:-none}) and update ${file}"
         return 0
     fi
 
-    ensure_dir "$(dirname "${file}")"
+    mkdir -p "$(dirname "${file}")"
     [[ -f "${file}" ]] || printf '{}\n' > "${file}"
 
     if [[ -z "${enc}" ]]; then
@@ -63,7 +67,7 @@ apply_record_fix() {
     fi
     if [[ "${enc}" == "h264" ]]; then
         ok "H.264 hardware encode available; default recorder settings are fine"
-        if jq -e '.record.extraArgs' "${file}" >/dev/null 2>&1; then
+        if have_cmd jq && jq -e '.record.extraArgs' "${file}" >/dev/null 2>&1; then
             tmp="$(mktemp)"
             jq 'del(.record.extraArgs)' "${file}" > "${tmp}" && mv "${tmp}" "${file}"
         fi
@@ -80,13 +84,13 @@ apply_record_fix() {
 setup_wallpapers() {
     section "Wallpapers"
     local dir="${HOME}/Pictures/Wallpapers"
-    ensure_dir "${dir}"
+    mkdir -p "${dir}"
     if ! compgen -G "${dir}/*" >/dev/null 2>&1; then
         # Reuse the wallpaper shipped inside the Caelestia shell instead of
         # vendoring a copy in this repository.
         local src="${XDG_CONFIG_HOME}/quickshell/caelestia/assets/wallpaper.webp"
         if [[ -f "${src}" ]]; then
-            run cp "${src}" "${dir}/caelestia.webp"
+            cp "${src}" "${dir}/caelestia.webp"
             ok "installed default wallpaper"
         else
             warn "no default wallpaper available; add one to ${dir}"

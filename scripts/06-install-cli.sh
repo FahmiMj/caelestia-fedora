@@ -1,14 +1,22 @@
 #!/usr/bin/env bash
 # Install the `caelestia` CLI in an isolated pipx environment.
 set -euo pipefail
-REPO_DIR="${REPO_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
-# shellcheck source=setup/_lib.sh
-source "${REPO_DIR}/setup/_lib.sh"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/log.sh
+source "${SCRIPT_DIR}/lib/log.sh"
+# shellcheck source=scripts/lib/privileges.sh
+source "${SCRIPT_DIR}/lib/privileges.sh"
+# shellcheck source=scripts/lib/packages.sh
+source "${SCRIPT_DIR}/lib/packages.sh"
+
+section() { printf '\n  == %s ==\n' "$1"; }
+
+have_cmd() { command -v "$1" >/dev/null 2>&1; }
 
 install_cli() {
     section "Caelestia CLI"
     dnf_install pipx
-    run pipx ensurepath
+    pipx ensurepath
 
     local dir="${CAELESTIA_SRC}/cli"
     git_sync "${CAELESTIA_CLI_REPO}" "${dir}" "${CAELESTIA_REF}"
@@ -19,7 +27,7 @@ install_cli() {
     # the default config and ignores subdirectories. So `qs -c caelestia`
     # resolves to the wrong config. Patch the CLI to use path-based launch
     # (`qs -p <dir>`) instead. See install logs, BUG 1/7.
-    run python3 - "${dir}" <<'PYEOF'
+    python3 - "${dir}" <<'PYEOF'
 import sys
 from pathlib import Path
 
@@ -53,7 +61,7 @@ shell_py.write_text(text)
 print(f"patched {shell_py}")
 PYEOF
 
-    run pipx install --force "${dir}"
+    pipx install --force "${dir}"
 
     if have_cmd caelestia; then
         ok "caelestia CLI installed: $(caelestia --version 2>/dev/null || echo '?')"

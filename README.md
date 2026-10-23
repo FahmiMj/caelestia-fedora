@@ -75,13 +75,13 @@ Caelestia session from GDM when it finishes.
 On a fresh Fedora machine, one command clones the installer, then runs it:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/FahmiMj/caelestia-fedora/main/bootstrap.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/FahmiMj/caelestia-fedora/main/install.sh)
 ```
 
 Fully unattended (standard set, no prompts):
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/FahmiMj/caelestia-fedora/main/bootstrap.sh) --yes
+CAELESTIA_DIR="$HOME/caelestia-fedora" bash <(curl -fsSL https://raw.githubusercontent.com/FahmiMj/caelestia-fedora/main/install.sh)
 ```
 
 ### From a checkout
@@ -92,50 +92,42 @@ cd caelestia-fedora
 ./install.sh
 ```
 
-### Options
-
-Both entrypoints accept the same flags:
-
-```bash
-./install.sh --dry-run     # print the plan, change nothing
-./install.sh --yes         # non-interactive, standard set
-./install.sh --vm          # apply the virtual-machine fixes
-./install.sh --help
-```
-
-The interactive menu offers three install modes: **Install Caelestia (recommended)**,
-**Install Caelestia + choose optional apps**, and **Install Caelestia (VirtualBox)** (the
-virtual-machine mode, equivalent to `--vm`).
+### Environment variables
 
 | Variable | Default | Purpose |
-| --- | --- | --- |
-| `CAELESTIA_REF` | `main` | Git ref (branch/tag) of the upstream components to install |
-| `CAELESTIA_VM` | `0` | Set to `1` (or pass `--vm`) to force the virtual-machine fixes; they are also applied automatically when a known-broken VM GPU driver is detected |
+|----------|---------|---------|
+| `CAELESTIA_REPO` | `https://github.com/FahmiMj/caelestia-fedora.git` | Git repository to clone |
+| `CAELESTIA_BRANCH` | `main` | Git branch/tag to checkout |
+| `CAELESTIA_DIR` | `$HOME/caelestia-fedora` | Directory to clone the installer into |
+| `CAELESTIA_REF` | `main` | Git ref of the upstream Caelestia components (shell, CLI, dots) |
+| `CAELESTIA_VM` | `0` | Set to `1` to force virtual-machine software-rendering fixes |
 | `CAELESTIA_VMWARE_HW` | unset | Set in the session environment to disable the VMware software-rendering fallback |
+| `DRY_RUN` | `0` | Set to `1` to print actions without making changes |
+| `ASSUME_YES` | `0` | Set to `1` for non-interactive installs |
 
 ## What gets installed
 
-The installer runs seventeen ordered steps, each a self-contained script in `setup/`:
+The installer runs seventeen ordered steps, each a self-contained script in `scripts/`:
 
 | Step | Module | Description |
 | --- | --- | --- |
-| 1 | `preflight` | Verify Fedora/arch, network, `sudo`, disk space; install `gum` |
-| 2 | `repos` | Enable RPM Fusion and COPRs (`lionheartp/Hyprland`, `peterwu/rendezvous`, `tofik/nwg-shell`) |
-| 3 | `packages` | Install compositor, shell dependencies, audio, networking, apps and tools |
-| 4 | `build-deps` | Build `libcava` and the `M3Shapes` QML module from source |
-| 5 | `shell` | Build and install the Caelestia Quickshell config into `~/.config/quickshell/caelestia` (adds `qs/` namespace symlinks so `import qs.services` etc. resolve) |
-| 6 | `cli` | Install the `caelestia` CLI in an isolated `pipx` environment (patched to use path-based `qs -p` launch) |
-| 7 | `fonts` | Install the bundled Caelestia fonts |
-| 8 | `dots` | Deploy the upstream dotfiles plus Fedora user overrides (incl. the fish config); ensures `scheme/current.lua` exists; deploys fastfetch config |
-| 9 | `terminal` | Install the oh-my-posh prompt theme |
-| 10 | `vm-fixes` | Enable software rendering for virtual machines (when selected, or auto-detected via `vmwgfx`/`vboxvideo`) |
-| 11 | `tools` | Install `caelestia-diag`, a read-only diagnostic collector |
-| 12 | `session` | Install the **Hyprland (Caelestia)** GDM/Wayland session (with NVIDIA env var workarounds) |
-| 13 | `fedora-fixes` | Pick a working GPU video encoder and create a wallpaper folder |
-| 14 | `desktop` | Enable services and set GTK/appearance defaults |
-| 15 | `gpu` | VA-API/Vulkan packages; optional NVIDIA driver prompt |
-| 16 | `extras` | Optional apps chosen in the TUI (firefox, nvim, zed, VS Code, Discord, …) |
-| 17 | `finish` | Generate the initial colour scheme and print next steps |
+| 1 | `01-ensure-prereqs` | Verify Fedora/arch, network, `sudo`, disk space; install `gum` |
+| 2 | `02-repos` | Enable RPM Fusion and COPRs (`lionheartp/Hyprland`, `peterwu/rendezvous`, `tofik/nwg-shell`) |
+| 3 | `03-all-packages` | Install compositor, shell dependencies, audio, networking, apps and tools |
+| 4 | `04-build-deps` | Build `libcava` and the `M3Shapes` QML module from source |
+| 5 | `05-build-shell` | Build and install the Caelestia Quickshell config into `~/.config/quickshell/caelestia` (adds `qs/` namespace symlinks so `import qs.services` etc. resolve) |
+| 6 | `06-install-cli` | Install the `caelestia` CLI in an isolated `pipx` environment (patched to use path-based `qs -p` launch) |
+| 7 | `07-install-fonts` | Install the bundled Caelestia fonts |
+| 8 | `08-deploy-configs` | Deploy the upstream dotfiles plus Fedora user overrides (incl. the fish config); ensures `scheme/current.lua` exists; deploys fastfetch config |
+| 9 | `09-terminal` | Install the oh-my-posh prompt theme |
+| 10 | `10-vm-fixes` | Enable software rendering for virtual machines (when selected, or auto-detected via `vmwgfx`/`vboxvideo`) |
+| 11 | `11-install-tools` | Install `caelestia-diag`, a read-only diagnostic collector |
+| 12 | `12-install-session` | Install the **Hyprland (Caelestia)** GDM/Wayland session (with NVIDIA env var workarounds) |
+| 13 | `13-fedora-fixes` | Pick a working GPU video encoder and create a wallpaper folder |
+| 14 | `14-desktop` | Enable services and set GTK/appearance defaults |
+| 15 | `15-gpu` | VA-API/Vulkan packages; optional NVIDIA driver prompt |
+| 16 | `16-optional-apps` | Optional apps (starship, firefox, nvim, zed, VS Code, Discord, …) |
+| 17 | `17-finish` | Generate the initial colour scheme and print next steps |
 
 ## First login
 
@@ -163,18 +155,29 @@ recording widget work on hardware that would otherwise silently fall back to sof
 ## Layout
 
 ```
-bootstrap.sh                    fresh-install entrypoint (clone + run install.sh)
-install.sh                      interactive installer / argument parsing / step runner
-setup/                          one script per step (all source setup/_lib.sh)
-  _lib.sh                         shared helpers: logging, dnf, COPR, rpmfusion, git
-  preflight … finish              the steps above
+install.sh                        entrypoint: clone repo + run scripts/setup.sh
+update.sh                         re-run installer to pull latest code and re-apply
+uninstall.sh                      remove Caelestia files and configs
+bootstrap.sh                      legacy entrypoint (kept for compatibility)
+scripts/                          one script per step (all source scripts/lib/)
+  setup.sh                        main setup runner
+  lib/
+    log.sh                        shared logging: [INFO]/[OK]/[WARN]/[ERR]/die
+    privileges.sh                 sudo / privilege escalation helpers
+    packages.sh                   dnf install, COPR, RPM Fusion helpers
+    install-fs.sh                 atomic_replace_tree, snapshot_dir, wait helpers
+  01-ensure-prereqs … 17-finish   the seventeen steps above
 tools/
   diag.sh                       read-only diagnostic collector, installed as caelestia-diag
 config/
   caelestia/                    user overrides: hypr-vars.lua, hypr-user.lua, user-config.fish
+                                fastfetch/config.jsonc, shell.json
   ohmyposh/                     fish prompt theme (zen.toml, colors.json)
   wayland-sessions/             GDM session entry (hyprland-caelestia.desktop)
   start-hyprland-caelestia      session launcher installed to /usr/local/bin
+  fonts/                        bundled fonts (see config/fonts/README.md)
+LICENSE                         MIT
+```
   fonts/                        bundled fonts (see config/fonts/README.md)
 LICENSE                         MIT
 ```
@@ -185,7 +188,13 @@ Re-run the installer; user overrides are preserved and upstream components are r
 the ref named by `CAELESTIA_REF` (default `main`):
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/FahmiMj/caelestia-fedora/main/bootstrap.sh)
+./update.sh
+```
+
+Or fetch and run the latest installer directly:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/FahmiMj/caelestia-fedora/main/install.sh)
 ```
 
 Note that Caelestia's own `caelestia update` command is Arch-specific; on Fedora, updating
@@ -193,20 +202,14 @@ means re-running this installer.
 
 ## Uninstalling
 
-There is no automated uninstaller, but the pieces are easy to remove:
+Run the included uninstaller:
 
 ```bash
-# stop the shell
-caelestia shell -k 2>/dev/null || true
-
-# shell config + CLI
-rm -rf ~/.config/quickshell/caelestia
-pipx uninstall caelestia
-
-# session entry point
-sudo rm -f /usr/local/bin/start-hyprland-caelestia
-sudo rm -f /usr/share/wayland-sessions/hyprland-caelestia.desktop
+./uninstall.sh
 ```
+
+It will stop the shell, remove configs and CLI, uninstall the session entry, and optionally
+remove installed packages.
 
 Remove `~/.config/hypr` and the component configs, or restore the `.bak-*` copies the
 installer created, if you want to return to your previous setup.
@@ -269,8 +272,14 @@ installer created, if you want to return to your previous setup.
 Issues and pull requests are welcome. Please run the linters before submitting:
 
 ```bash
-shellcheck -x install.sh setup/*.sh bootstrap.sh
-./install.sh --yes --dry-run
+shellcheck -x install.sh scripts/*.sh scripts/lib/*.sh bootstrap.sh
+./install.sh
+```
+
+To test without making changes, set `DRY_RUN=1`:
+
+```bash
+DRY_RUN=1 ./install.sh
 ```
 
 ## Credits

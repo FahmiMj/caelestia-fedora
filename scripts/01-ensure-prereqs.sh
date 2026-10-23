@@ -2,9 +2,15 @@
 # Preflight checks: verify the host is a supported Fedora system and that the
 # basic tooling (sudo, network, disk space, gum) is available.
 set -euo pipefail
-REPO_DIR="${REPO_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
-# shellcheck source=setup/_lib.sh
-source "${REPO_DIR}/setup/_lib.sh"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/log.sh
+source "${SCRIPT_DIR}/lib/log.sh"
+# shellcheck source=scripts/lib/privileges.sh
+source "${SCRIPT_DIR}/lib/privileges.sh"
+# shellcheck source=scripts/lib/packages.sh
+source "${SCRIPT_DIR}/lib/packages.sh"
+
+section() { printf '\n  == %s ==\n' "$1"; }
 
 require_fedora() {
     [[ -r /etc/os-release ]] || die "/etc/os-release not found; unsupported system"
@@ -35,7 +41,7 @@ require_sudo() {
         info "dry-run: skipping sudo authentication"
         return 0
     fi
-    if sudo -n true 2>/dev/null; then
+    if caelestia_real_sudo -n true 2>/dev/null; then
         ok "sudo available (passwordless)"
         return 0
     fi
@@ -43,8 +49,7 @@ require_sudo() {
         die "sudo needs a password but no terminal is available; run interactively or configure NOPASSWD for this user"
     fi
     info "sudo will prompt for your password"
-    # shellcheck disable=SC2024  # we want sudo to read the password from the tty
-    sudo -v </dev/tty || die "sudo authentication failed"
+    caelestia_real_sudo -v </dev/tty || die "sudo authentication failed"
     ok "sudo available"
 }
 
@@ -66,7 +71,7 @@ ensure_gum() {
     info "installing gum"
     if [[ "${DRY_RUN}" == "1" ]]; then dry "install gum"; return 0; fi
     if dnf -q list --available gum >/dev/null 2>&1; then
-        srun dnf install -y gum
+        caelestia_sudo dnf install -y gum
     else
         local ver="0.17.0" arch
         case "$(uname -m)" in
@@ -79,7 +84,7 @@ ensure_gum() {
         curl -fsSL -o "${tmp}/gum.tar.gz" \
             "https://github.com/charmbracelet/gum/releases/download/v${ver}/gum_${ver}_Linux_${arch}.tar.gz"
         tar -xzf "${tmp}/gum.tar.gz" -C "${tmp}" gum
-        run mkdir -p "${HOME}/.local/bin"
+        mkdir -p "${HOME}/.local/bin"
         install -Dm0755 "${tmp}/gum" "${HOME}/.local/bin/gum"
         rm -rf "${tmp}"
         export PATH="${HOME}/.local/bin:${PATH}"

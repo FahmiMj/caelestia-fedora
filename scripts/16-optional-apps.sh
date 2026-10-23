@@ -1,23 +1,31 @@
 #!/usr/bin/env bash
 # Optional applications. Invoked with the component names to install, e.g.
-#   extras.sh starship nvim zed
+#   16-optional-apps.sh starship nvim zed
 set -euo pipefail
-REPO_DIR="${REPO_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
-# shellcheck source=setup/_lib.sh
-source "${REPO_DIR}/setup/_lib.sh"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/log.sh
+source "${SCRIPT_DIR}/lib/log.sh"
+# shellcheck source=scripts/lib/privileges.sh
+source "${SCRIPT_DIR}/lib/privileges.sh"
+# shellcheck source=scripts/lib/packages.sh
+source "${SCRIPT_DIR}/lib/packages.sh"
+
+section() { printf '\n  == %s ==\n' "$1"; }
+
+have_cmd() { command -v "$1" >/dev/null 2>&1; }
 
 DOTS="${CAELESTIA_SRC}/caelestia"
 
 put_file() {
     local src="$1" dest="$2"
     [[ -f "${src}" ]] || return 0
-    ensure_dir "$(dirname "${dest}")"
-    run cp "${src}" "${dest}"
+    mkdir -p "$(dirname "${dest}")"
+    cp "${src}" "${dest}"
 }
 
 install_starship() {
     have_cmd starship && { ok "starship already installed"; return 0; }
-    if [[ "${DRY_RUN}" == "1" ]]; then dry "install starship"; return 0; fi
+    if [[ "${DRY_RUN}" == "1" ]]; then info "[dry-run] install starship"; return 0; fi
     info "installing starship"
     curl -fsSL https://starship.rs/install.sh | sh -s -- -y
 }
@@ -27,7 +35,7 @@ install_firefox_theme() {
     local profile
     for profile in "${HOME}"/.mozilla/firefox/*.default*; do
         [[ -d "${profile}" ]] || continue
-        ensure_dir "${profile}/chrome"
+        mkdir -p "${profile}/chrome"
         put_file "${DOTS}/firefox/userChrome.css" "${profile}/chrome/userChrome.css"
         put_file "${DOTS}/firefox/user.js" "${profile}/user.js"
         info "firefox theme applied to $(basename "${profile}")"
