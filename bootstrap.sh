@@ -57,9 +57,10 @@ export CAELESTIA_REF="${REF}"
 
 if [[ -d "${REPO_DIR}/.git" ]]; then
     info "updating checkout in ${REPO_DIR}"
-    git -C "${REPO_DIR}" fetch --depth 1 origin "${REF}" \
-        && git -C "${REPO_DIR}" checkout --force FETCH_HEAD \
-        || die "could not update ${REPO_DIR}"
+    if ! git -C "${REPO_DIR}" fetch --depth 1 origin "${REF}" \
+        || ! git -C "${REPO_DIR}" checkout --force FETCH_HEAD; then
+        die "could not update ${REPO_DIR}"
+    fi
 else
     info "cloning ${repo_url} (${REF}) into ${REPO_DIR}"
     mkdir -p "${STATE_DIR}"

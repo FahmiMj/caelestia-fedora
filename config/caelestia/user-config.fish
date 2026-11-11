@@ -56,4 +56,8 @@ end
 # ---------------------------------------------------------------
 # Fastfetch on every interactive shell
 # ---------------------------------------------------------------
-fastfetch
+if test -f "$HOME/.config/caelestia-fastfetch/config.jsonc"
+    fastfetch --config "$HOME/.config/caelestia-fastfetch/config.jsonc"
+else
+    fastfetch
+end

@@ -5,6 +5,12 @@ if [[ -n "${CAELESTIA_LOG_LOADED:-}" ]]; then
 fi
 CAELESTIA_LOG_LOADED=1
 
+# Every step is sourced with `set -u`; default the flags the steps read so they
+# also work when run on their own (outside scripts/setup.sh).
+: "${DRY_RUN:=0}"
+: "${ASSUME_YES:=0}"
+: "${CAELESTIA_VM:=0}"
+
 info() { printf '  [INFO]  %s\n' "$*"; }
 ok()   { printf '  [OK]    %s\n' "$*"; }
 warn() { printf '  [WARN]  %s\n' "$*"; }

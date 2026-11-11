@@ -18,7 +18,8 @@ section() {
     echo "-------------------------------------------------------------"
 }
 
-export BUNDLE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BUNDLE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export BUNDLE_DIR
 cd "$BUNDLE_DIR" || die "Could not enter $BUNDLE_DIR"
 
 exec 9>"${XDG_RUNTIME_DIR:-/tmp}/caelestia-update.lock"

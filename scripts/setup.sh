@@ -14,7 +14,8 @@ trap cleanup EXIT
 BUNDLE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SCRIPTS_DIR="$BUNDLE_DIR/scripts"
 export BUNDLE_DIR
-export INSTALL_START_EPOCH="$(date +%s)"
+INSTALL_START_EPOCH="$(date +%s)"
+export INSTALL_START_EPOCH
 
 export PATH="$HOME/.local/bin:$PATH"
 
