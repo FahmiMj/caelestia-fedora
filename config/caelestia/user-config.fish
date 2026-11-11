@@ -25,8 +25,10 @@ alias pf 'fastfetch'
 alias ls 'eza -a --icons=always'
 alias ll 'eza -al --icons=always'
 alias lt 'eza -a --tree --level=1 --icons=always'
-alias v '$EDITOR'
-alias vim '$EDITOR'
+# Single quotes would make these run the literal string "$EDITOR"; expand the
+# variable at definition time instead.
+alias v $EDITOR
+alias vim $EDITOR
 alias wifi nmtui
 alias lock hyprlock
 alias update-grub 'sudo grub-mkconfig -o /boot/grub/grub.cfg'
@@ -45,7 +47,7 @@ alias gfo 'git fetch origin'
 alias gcheck 'git checkout'
 
 # ---------------------------------------------------------------
-# Prompt: oh-my-posh, falling back to the starship prompt if missing
+# Prompt: oh-my-posh (falls back to the default fish prompt when absent)
 # ---------------------------------------------------------------
 if command -q oh-my-posh; and test -f "$HOME/.config/ohmyposh/zen.toml"
     oh-my-posh init fish --config "$HOME/.config/ohmyposh/zen.toml" | source

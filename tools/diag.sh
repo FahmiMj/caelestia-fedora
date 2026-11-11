@@ -31,9 +31,13 @@ printf 'HYPRLAND_INSTANCE_SIGNATURE=%s\n' "${hid:-<none>}"
 ls -la "$rt/hypr" 2>&1 || true
 
 hr "hyprctl monitors"
-HYPRLAND_INSTANCE_SIGNATURE="$hid" hyprctl monitors 2>&1 | head -20
-hr "hyprctl version"
-HYPRLAND_INSTANCE_SIGNATURE="$hid" hyprctl version 2>&1 | head -5
+if [ -n "$hid" ]; then
+    HYPRLAND_INSTANCE_SIGNATURE="$hid" hyprctl monitors 2>&1 | head -20
+    hr "hyprctl version"
+    HYPRLAND_INSTANCE_SIGNATURE="$hid" hyprctl version 2>&1 | head -5
+else
+    echo "no running Hyprland instance found"
+fi
 
 hr "Hyprland process env"
 for pid in $(pgrep -x Hyprland 2>/dev/null); do

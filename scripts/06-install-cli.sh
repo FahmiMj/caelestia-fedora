@@ -8,6 +8,8 @@ source "${SCRIPT_DIR}/lib/log.sh"
 source "${SCRIPT_DIR}/lib/privileges.sh"
 # shellcheck source=scripts/lib/packages.sh
 source "${SCRIPT_DIR}/lib/packages.sh"
+# shellcheck source=scripts/lib/install-fs.sh
+source "${SCRIPT_DIR}/lib/install-fs.sh"
 
 section() { printf '\n  == %s ==\n' "$1"; }
 
@@ -43,19 +45,34 @@ text = shell_py.read_text()
 if "from pathlib import Path" not in text:
     text = text.replace("import os\n", "import os\nfrom pathlib import Path\n")
 
-# Add CAEL_QUICKSHELL_DIR constant after the imports
+# Add CAEL_QUICKSHELL_DIR constant
+CONST_DEF = 'CAEL_QUICKSHELL_DIR = str(Path.home() / ".config" / "quickshell" / "caelestia")\n'
 if "CAEL_QUICKSHELL_DIR" not in text:
     marker = "from caelestia.utils.io import fatal, warn\n"
-    text = text.replace(
-        marker,
-        marker + "\nCAEL_QUICKSHELL_DIR = str(Path.home() / \".config\" / \"quickshell\" / \"caelestia\")\n",
-    )
+    if marker in text:
+        text = text.replace(marker, marker + "\n" + CONST_DEF)
+    else:
+        # Fall back to defining the constant after the import block so the
+        # replacement below never references an undefined name.
+        lines = text.splitlines(keepends=True)
+        last_import = 0
+        for idx, line in enumerate(lines):
+            if line.startswith(("import ", "from ")):
+                last_import = idx + 1
+        lines.insert(last_import, "\n" + CONST_DEF)
+        text = "".join(lines)
 
 # Replace every qs -c caelestia with qs -p <dir>
-text = text.replace(
-    '["qs", "-c", "caelestia"',
-    '["qs", "-p", CAEL_QUICKSHELL_DIR',
-)
+if '["qs", "-c", "caelestia"' not in text:
+    print(
+        f"WARNING: no 'qs -c caelestia' invocation in {shell_py}; CLI left unpatched",
+        file=sys.stderr,
+    )
+else:
+    text = text.replace(
+        '["qs", "-c", "caelestia"',
+        '["qs", "-p", CAEL_QUICKSHELL_DIR',
+    )
 
 shell_py.write_text(text)
 print(f"patched {shell_py}")

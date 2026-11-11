@@ -1,6 +1,59 @@
 #!/usr/bin/env bash
 # Filesystem helpers: atomic tree replacement, snapshots, and file waiting.
 # Adapted from caelestia-kde scripts/lib/install-fs.sh.
+if [[ -n "${CAELESTIA_INSTALL_FS_LOADED:-}" ]]; then
+    return 0
+fi
+CAELESTIA_INSTALL_FS_LOADED=1
+
+ensure_dir() { mkdir -p -- "$@"; }
+
+backup_path() {
+    local path="$1" bak
+    [[ -e "${path}" || -L "${path}" ]] || return 0
+    bak="${path}.bak-$(date +%Y%m%d-%H%M%S)"
+    warn "backing up ${path} -> ${bak}"
+    mv -- "${path}" "${bak}"
+}
+
+write_if_absent() {
+    local src="$1" dest="$2"
+    if [[ -e "${dest}" ]]; then
+        info "keeping existing ${dest}"
+        return 0
+    fi
+    ensure_dir "$(dirname "${dest}")"
+    cp -- "${src}" "${dest}"
+}
+
+# git_sync <repo-url> <dest-dir> [ref]
+# Clone the repo into dest, or move an existing checkout to the requested ref.
+git_sync() {
+    local repo="$1" dest="$2" ref="${3:-}"
+
+    ensure_dir "$(dirname "${dest}")" || return 1
+
+    if [[ -d "${dest}/.git" ]]; then
+        info "updating $(basename "${dest}")"
+        if [[ -f "$(git -C "${dest}" rev-parse --absolute-git-dir 2>/dev/null)/shallow" ]]; then
+            git -C "${dest}" fetch --unshallow --tags origin
+        fi
+        git -C "${dest}" fetch --tags origin
+        if [[ -n "${ref}" ]]; then
+            git -C "${dest}" fetch origin "${ref}" &&
+                git -C "${dest}" checkout --force FETCH_HEAD
+        else
+            git -C "${dest}" reset --hard origin/HEAD
+        fi
+    else
+        rm -rf "${dest}"
+        if [[ -n "${ref}" ]]; then
+            git clone --branch "${ref}" "${repo}" "${dest}"
+        else
+            git clone "${repo}" "${dest}"
+        fi
+    fi
+}
 
 atomic_replace_tree() {
     local src="$1" dest="$2" required="${3:-}"

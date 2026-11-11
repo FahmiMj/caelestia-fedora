@@ -2,8 +2,29 @@
 
 set -eu
 
+# Run the setup from this checkout, never whatever scripts/setup.sh happens to
+# sit in the current directory.
+unset CDPATH
+SCRIPT_DIR=$(cd -- "$(dirname -- "$0")" && pwd)
+
+# --help has to work even without a terminal.
+case " $* " in
+    *" --help "*|*" -h "*)
+        if [ -f "$SCRIPT_DIR/scripts/setup.sh" ]; then
+            exec bash "$SCRIPT_DIR/scripts/setup.sh" --help
+        fi
+        printf '%s\n' "Usage: install.sh [--yes] [--dry-run] [--vm] [--help]"
+        exit 0
+        ;;
+esac
+
 # TTY handling: if stdin is not a terminal, reopen /dev/tty so interactive
 # prompts (sudo, confirm, gum) still work when piped or launched from a menu.
+# /dev/tty exists even when there is no controlling terminal, so probe it by
+# actually opening it rather than testing for the device node.
+tty_usable() {
+    ( exec 0<>/dev/tty ) 2>/dev/null
+}
 {
 if [ ! -t 0 ]; then
     REAL_TTY=""
@@ -23,9 +44,10 @@ if [ ! -t 0 ]; then
         fi
     fi
 
-    if [ -n "$REAL_TTY" ] && [ "$REAL_TTY" != "not a tty" ] && [ -c "$REAL_TTY" ]; then
+    if [ -n "$REAL_TTY" ] && [ "$REAL_TTY" != "not a tty" ] \
+        && ( exec 0<>"$REAL_TTY" ) 2>/dev/null; then
         exec 0<>"$REAL_TTY" 1<>"$REAL_TTY" 2<>"$REAL_TTY"
-    elif [ -c /dev/tty ]; then
+    elif tty_usable; then
         exec 0<>/dev/tty
     else
         echo "  [ERR]   stdin is not a terminal and no TTY is available." >&2
@@ -43,15 +65,11 @@ if ! command -v git >/dev/null 2>&1; then
     exit 1
 fi
 
-# Run the setup from this checkout, never whatever scripts/setup.sh
-# happens to sit in the current directory.
-unset CDPATH
-SCRIPT_DIR=$(cd -- "$(dirname -- "$0")" && pwd)
 if [ -f "$SCRIPT_DIR/scripts/setup.sh" ]; then
-    if [ ! -t 0 ] && [ -c /dev/tty ]; then
-        exec bash "$SCRIPT_DIR/scripts/setup.sh" </dev/tty
+    if [ ! -t 0 ] && tty_usable; then
+        exec bash "$SCRIPT_DIR/scripts/setup.sh" "$@" </dev/tty
     fi
-    exec bash "$SCRIPT_DIR/scripts/setup.sh"
+    exec bash "$SCRIPT_DIR/scripts/setup.sh" "$@"
 fi
 
 if [ -d "$DEST/.git" ]; then
@@ -65,8 +83,8 @@ else
     git clone -b "$BRANCH" --single-branch --depth 1 --recurse-submodules "$REPO" "$DEST"
 fi
 
-if [ ! -t 0 ] && [ -c /dev/tty ]; then
-    exec bash "$DEST/scripts/setup.sh" </dev/tty
+if [ ! -t 0 ] && tty_usable; then
+    exec bash "$DEST/scripts/setup.sh" "$@" </dev/tty
 fi
-exec bash "$DEST/scripts/setup.sh"
+exec bash "$DEST/scripts/setup.sh" "$@"
 }

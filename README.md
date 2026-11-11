@@ -101,6 +101,7 @@ cd caelestia-fedora
 | `CAELESTIA_DIR` | `$HOME/caelestia-fedora` | Directory to clone the installer into |
 | `CAELESTIA_REF` | `main` | Git ref of the upstream Caelestia components (shell, CLI, dots) |
 | `CAELESTIA_VM` | `0` | Set to `1` to force virtual-machine software-rendering fixes |
+| `CAELESTIA_OPTIONAL_APPS` | unset | Space-separated optional components to install without the menu (`starship firefox nvim zed …`) |
 | `CAELESTIA_VMWARE_HW` | unset | Set in the session environment to disable the VMware software-rendering fallback |
 | `DRY_RUN` | `0` | Set to `1` to print actions without making changes |
 | `ASSUME_YES` | `0` | Set to `1` for non-interactive installs |
@@ -175,9 +176,6 @@ config/
   ohmyposh/                     fish prompt theme (zen.toml, colors.json)
   wayland-sessions/             GDM session entry (hyprland-caelestia.desktop)
   start-hyprland-caelestia      session launcher installed to /usr/local/bin
-  fonts/                        bundled fonts (see config/fonts/README.md)
-LICENSE                         MIT
-```
   fonts/                        bundled fonts (see config/fonts/README.md)
 LICENSE                         MIT
 ```

@@ -79,7 +79,7 @@ if [[ -f "$HOME/.config/caelestia/install.env" ]]; then
     set +a
 fi
 
-bash "$BUNDLE_DIR/install.sh"
+bash "$BUNDLE_DIR/install.sh" "$@"
 
 section "Update Completed Successfully"
 echo

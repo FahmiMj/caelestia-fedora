@@ -5,6 +5,11 @@ set -euo pipefail
 export CAELESTIA_SETUP_RUNNING=1
 
 tput civis 2>/dev/null || true
+cleanup() {
+    tput cnorm 2>/dev/null || true
+    caelestia_stop_sudo_keepalive 2>/dev/null || true
+}
+trap cleanup EXIT
 
 BUNDLE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SCRIPTS_DIR="$BUNDLE_DIR/scripts"
@@ -47,72 +52,76 @@ export CAELESTIA_STATE CAELESTIA_SRC CAELESTIA_LOG
 DRY_RUN="${DRY_RUN:-0}"
 ASSUME_YES="${ASSUME_YES:-0}"
 CAELESTIA_VM="${CAELESTIA_VM:-0}"
-
 CONFIG_DIR="${BUNDLE_DIR}/config"
+
+# Steps run as separate bash processes, so everything they read from the
+# environment has to be exported here.
+export DRY_RUN ASSUME_YES CAELESTIA_VM CONFIG_DIR
 
 run_step() {
     local step="$1"; shift
+    # The preflight step is read-only apart from guarded package installs, so
+    # it still runs in dry-run mode; everything else would change the system.
+    if [[ "${DRY_RUN}" == "1" && "${step}" != "01-ensure-prereqs" ]]; then
+        dry "step ${step}${*+: $*}"
+        return 0
+    fi
     bash "${SCRIPTS_DIR}/${step}.sh" "$@"
 }
 
-have_cmd() { command -v "$1" >/dev/null 2>&1; }
+# Choose the optional components (step 16). CAELESTIA_OPTIONAL_APPS="a b"
+# overrides the menu; otherwise gum presents a multi-select on a terminal.
+select_optional_apps() {
+    OPTIONAL_APPS=()
+    local -a apps=(starship firefox nvim zed vscode vscodium discord spotify todoist uwsm)
 
-confirm() {
-    local prompt="${1:-Continue?}"
-    if [[ "${ASSUME_YES}" == "1" ]]; then
+    if [[ -n "${CAELESTIA_OPTIONAL_APPS:-}" ]]; then
+        read -r -a OPTIONAL_APPS <<<"${CAELESTIA_OPTIONAL_APPS}"
         return 0
     fi
-    if have_cmd gum; then
-        gum confirm "$prompt"
-    else
-        local reply
-        read -r -p "${prompt} [y/N] " reply
-        [[ "${reply}" =~ ^[Yy]$ ]]
-    fi
-}
-
-backup_path() {
-    local path="$1" bak
-    [[ -e "${path}" || -L "${path}" ]] || return 0
-    bak="${path}.bak-$(date +%Y%m%d-%H%M%S)"
-    warn "backing up ${path} -> ${bak}"
-    mv "${path}" "${bak}"
-}
-
-ensure_dir() { mkdir -p "$@"; }
-
-git_sync() {
-    local repo="$1" dest="$2" ref="${3:-}"
-    if [[ -d "${dest}/.git" ]]; then
-        info "updating $(basename "${dest}")"
-        if [[ -f "$(git -C "${dest}" rev-parse --absolute-git-dir)/shallow" ]]; then
-            git -C "${dest}" fetch --unshallow --tags origin
-        fi
-        git -C "${dest}" fetch --tags origin
-        if [[ -n "${ref}" ]]; then
-            git -C "${dest}" fetch origin "${ref}"
-            git -C "${dest}" checkout --force FETCH_HEAD
-        else
-            git -C "${dest}" reset --hard origin/HEAD
-        fi
-    else
-        rm -rf "${dest}"
-        if [[ -n "${ref}" ]]; then
-            git clone --branch "${ref}" "${repo}" "${dest}"
-        else
-            git clone "${repo}" "${dest}"
-        fi
-    fi
-}
-
-write_if_absent() {
-    local src="$1" dest="$2"
-    if [[ -e "${dest}" ]]; then
-        info "keeping existing ${dest}"
+    if [[ "${ASSUME_YES}" == "1" || "${DRY_RUN}" == "1" ]] \
+        || [[ ! -t 0 ]] || ! have_cmd gum; then
         return 0
     fi
-    ensure_dir "$(dirname "${dest}")"
-    cp "${src}" "${dest}"
+
+    local picked line
+    picked="$(gum choose --no-limit --height 12 \
+        --header "Optional apps (space selects, enter confirms)" \
+        "${apps[@]}" 2>/dev/null || true)"
+    while IFS= read -r line; do
+        [[ -n "${line}" ]] && OPTIONAL_APPS+=("${line}")
+    done <<<"${picked}"
+    return 0
+}
+
+usage() {
+    cat <<'EOF'
+Usage: ./install.sh [options]
+
+Options:
+  -y, --yes        non-interactive; accept all prompts
+  -n, --dry-run    print what would happen without changing the system
+      --vm         force virtual-machine software-rendering fixes
+  -h, --help       show this help
+
+Environment:
+  CAELESTIA_REF, CAELESTIA_DIR, CAELESTIA_BRANCH, CAELESTIA_REPO,
+  CAELESTIA_OPTIONAL_APPS, DRY_RUN, ASSUME_YES, CAELESTIA_VM
+EOF
+}
+
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -y|--yes)     ASSUME_YES=1 ;;
+            -n|--dry-run) DRY_RUN=1 ;;
+            --vm)         CAELESTIA_VM=1 ;;
+            -h|--help)    usage; exit 0 ;;
+            *)            die "Unknown option: $1 (try --help)" ;;
+        esac
+        shift
+    done
+    export DRY_RUN ASSUME_YES CAELESTIA_VM
 }
 
 # ---------------------------------------------------------------------------
@@ -123,6 +132,8 @@ main() {
 
     warn "Existing Hyprland configuration will be backed up before being replaced."
     confirm "Proceed with the installation?" || { info "aborted"; exit 0; }
+
+    select_optional_apps
 
     local step
     for step in \
@@ -143,7 +154,11 @@ main() {
         15-gpu \
         16-optional-apps \
         17-finish; do
-        run_step "${step}"
+        if [[ "${step}" == "16-optional-apps" ]]; then
+            run_step "${step}" "${OPTIONAL_APPS[@]}"
+        else
+            run_step "${step}"
+        fi
     done
 
     ok "Caelestia installation complete"
@@ -155,4 +170,5 @@ main() {
     printf '\n'
 }
 
+parse_args "$@"
 main "$@"

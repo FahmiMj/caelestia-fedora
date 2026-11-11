@@ -7,20 +7,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/lib/log.sh"
 # shellcheck source=scripts/lib/privileges.sh
 source "${SCRIPT_DIR}/lib/privileges.sh"
+# shellcheck source=scripts/lib/install-fs.sh
+source "${SCRIPT_DIR}/lib/install-fs.sh"
+
+CONFIG_DIR="${CONFIG_DIR:-$(cd "${SCRIPT_DIR}/../config" && pwd)}"
 
 section() { printf '\n  == %s ==\n' "$1"; }
-
-have_cmd() { command -v "$1" >/dev/null 2>&1; }
-
-backup_path() {
-    local path="$1" bak
-    [[ -e "${path}" || -L "${path}" ]] || return 0
-    bak="${path}.bak-$(date +%Y%m%d-%H%M%S)"
-    warn "backing up ${path} -> ${bak}"
-    mv "${path}" "${bak}"
-}
-
-ensure_dir() { mkdir -p "$@"; }
 
 copy_tree() {
     local src="$1" dest="$2"
@@ -40,16 +32,6 @@ copy_file() {
         return 0
     fi
     backup_path "${dest}"
-    ensure_dir "$(dirname "${dest}")"
-    cp "${src}" "${dest}"
-}
-
-write_if_absent() {
-    local src="$1" dest="$2"
-    if [[ -e "${dest}" ]]; then
-        info "keeping existing ${dest}"
-        return 0
-    fi
     ensure_dir "$(dirname "${dest}")"
     cp "${src}" "${dest}"
 }
@@ -111,5 +93,4 @@ main() {
     ok "dotfiles deployed"
 }
 
-main() { install_dots "$@"; }
 main "$@"

@@ -23,12 +23,12 @@ section "Caelestia Uninstaller"
 echo " This will remove Caelestia shell files and configs."
 echo
 
-caelestia_prime_sudo || die "Failed to obtain sudo privileges."
-trap 'caelestia_stop_sudo_keepalive; true' EXIT
-
 echo
 read -r -p "Are you sure you want to uninstall Caelestia? [y/N]: " _confirm
 [[ "${_confirm,,}" == "y" || "${_confirm,,}" == "yes" ]] || die "Uninstall cancelled."
+
+caelestia_prime_sudo || die "Failed to obtain sudo privileges."
+trap 'caelestia_stop_sudo_keepalive; true' EXIT
 
 echo
 read -r -p "Remove installed packages as well? [y/N]: " _remove_pkgs
@@ -51,19 +51,25 @@ rm -f "${HOME}/.local/bin/caelestia"
 
 section "Removing session entry"
 caelestia_sudo rm -f /usr/local/bin/start-hyprland-caelestia
+caelestia_sudo rm -f /usr/local/bin/caelestia-diag
 caelestia_sudo rm -f /usr/share/wayland-sessions/hyprland-caelestia.desktop
 
 section "Removing user configs"
+# The installer deploys upstream dotfiles straight into ~/.config and backs up
+# any pre-existing copies as <path>.bak-<timestamp>; remove what it installed.
 rm -rf "${HOME}/.config/caelestia"
-rm -rf "${HOME}/.config/caelestia-hypr"
-rm -rf "${HOME}/.config/caelestia-fish"
-rm -rf "${HOME}/.config/caelestia-foot"
 rm -rf "${HOME}/.config/caelestia-fastfetch"
-rm -rf "${HOME}/.config/caelestia-btop"
-rm -rf "${HOME}/.config/caelestia-micro"
-rm -rf "${HOME}/.config/caelestia-thunar"
-rm -rf "${HOME}/.config/caelestia-uwsm"
-rm -f "${HOME}/.config/caelestia-starship.toml"
+rm -rf "${HOME}/.config/ohmyposh"
+rm -rf "${HOME}/.config/hypr"
+rm -rf "${HOME}/.config/fish"
+rm -rf "${HOME}/.config/foot"
+rm -rf "${HOME}/.config/fastfetch"
+rm -rf "${HOME}/.config/btop"
+rm -rf "${HOME}/.config/micro"
+rm -rf "${HOME}/.config/Thunar"
+rm -f "${HOME}/.config/starship.toml"
+rm -rf "${HOME}/.local/share/fonts/caelestia"
+warn "Previous configs, if any, are still available as ~/.config/<name>.bak-*"
 
 if [[ "$REMOVE_PACKAGES" == "true" ]]; then
     section "Removing packages"

@@ -7,10 +7,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/lib/log.sh"
 # shellcheck source=scripts/lib/privileges.sh
 source "${SCRIPT_DIR}/lib/privileges.sh"
+# shellcheck source=scripts/lib/packages.sh
+source "${SCRIPT_DIR}/lib/packages.sh"
+# shellcheck source=scripts/lib/install-fs.sh
+source "${SCRIPT_DIR}/lib/install-fs.sh"
 
 section() { printf '\n  == %s ==\n' "$1"; }
-
-have_cmd() { command -v "$1" >/dev/null 2>&1; }
 
 install_shell() {
     section "Caelestia shell"
@@ -33,7 +35,7 @@ install_shell() {
 
     # cmake --install runs as root and may drop root-owned files into the config
     # directory; hand them back to the user.
-    caelestia_sudo chown -R "${USER}:${USER}" "${dir}"
+    caelestia_sudo chown -R "${USER}:$(id -gn)" "${dir}"
 
     # Fedora quickshell isolation fix:
     # The shell QML imports `qs.services`, `qs.components`, `qs.utils` but the

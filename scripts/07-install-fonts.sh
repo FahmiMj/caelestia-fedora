@@ -4,6 +4,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/lib/log.sh
 source "${SCRIPT_DIR}/lib/log.sh"
+# shellcheck source=scripts/lib/install-fs.sh
+source "${SCRIPT_DIR}/lib/install-fs.sh"
+
+# Allow running this step directly, outside scripts/setup.sh.
+CONFIG_DIR="${CONFIG_DIR:-$(cd "${SCRIPT_DIR}/../config" && pwd)}"
 
 section() { printf '\n  == %s ==\n' "$1"; }
 

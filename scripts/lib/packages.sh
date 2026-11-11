@@ -31,6 +31,10 @@ dnf_install() {
         ok "nothing to install"
         return 0
     fi
+    if [[ "${DRY_RUN:-0}" == "1" ]]; then
+        dry "dnf install ${want[*]}"
+        return 0
+    fi
     info "dnf install: ${want[*]}"
     if ! caelestia_sudo dnf install -y --skip-unavailable "${want[@]}"; then
         warn "some packages could not be installed together; retrying with --skip-broken"
@@ -47,6 +51,10 @@ copr_enable() {
         info "COPR already enabled: ${copr}"
         return 0
     fi
+    if [[ "${DRY_RUN:-0}" == "1" ]]; then
+        dry "dnf copr enable ${copr}"
+        return 0
+    fi
     info "enabling COPR: ${copr}"
     caelestia_sudo dnf copr enable -y "${copr}"
 }
@@ -56,17 +64,25 @@ rpmfusion_enable() {
     rel="$(rpm -E %fedora)"
     repo="/etc/yum.repos.d/rpmfusion-free.repo"
     if [[ ! -f "${repo}" ]]; then
-        info "enabling RPM Fusion (free)"
-        caelestia_sudo dnf install -y \
-            "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${rel}.noarch.rpm"
+        if [[ "${DRY_RUN:-0}" == "1" ]]; then
+            dry "enable RPM Fusion (free) for Fedora ${rel}"
+        else
+            info "enabling RPM Fusion (free)"
+            caelestia_sudo dnf install -y \
+                "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${rel}.noarch.rpm"
+        fi
     else
         info "RPM Fusion (free) already enabled"
     fi
     repo="/etc/yum.repos.d/rpmfusion-nonfree.repo"
     if [[ ! -f "${repo}" ]]; then
-        info "enabling RPM Fusion (nonfree)"
-        caelestia_sudo dnf install -y \
-            "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${rel}.noarch.rpm"
+        if [[ "${DRY_RUN:-0}" == "1" ]]; then
+            dry "enable RPM Fusion (nonfree) for Fedora ${rel}"
+        else
+            info "enabling RPM Fusion (nonfree)"
+            caelestia_sudo dnf install -y \
+                "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${rel}.noarch.rpm"
+        fi
     else
         info "RPM Fusion (nonfree) already enabled"
     fi

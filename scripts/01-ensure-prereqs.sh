@@ -9,6 +9,8 @@ source "${SCRIPT_DIR}/lib/log.sh"
 source "${SCRIPT_DIR}/lib/privileges.sh"
 # shellcheck source=scripts/lib/packages.sh
 source "${SCRIPT_DIR}/lib/packages.sh"
+# shellcheck source=scripts/lib/install-fs.sh
+source "${SCRIPT_DIR}/lib/install-fs.sh"
 
 section() { printf '\n  == %s ==\n' "$1"; }
 

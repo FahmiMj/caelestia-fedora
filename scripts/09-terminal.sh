@@ -6,20 +6,14 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/lib/log.sh
 source "${SCRIPT_DIR}/lib/log.sh"
+# shellcheck source=scripts/lib/install-fs.sh
+source "${SCRIPT_DIR}/lib/install-fs.sh"
+
+CONFIG_DIR="${CONFIG_DIR:-$(cd "${SCRIPT_DIR}/../config" && pwd)}"
 
 section() { printf '\n  == %s ==\n' "$1"; }
 
 have_cmd() { command -v "$1" >/dev/null 2>&1; }
-
-write_if_absent() {
-    local src="$1" dest="$2"
-    if [[ -e "${dest}" ]]; then
-        info "keeping existing ${dest}"
-        return 0
-    fi
-    mkdir -p "$(dirname "${dest}")"
-    cp "${src}" "${dest}"
-}
 
 main() {
     section "Terminal prompt"
@@ -31,5 +25,4 @@ main() {
     ok "oh-my-posh prompt installed"
 }
 
-main() { install_terminal "$@"; }
 main "$@"

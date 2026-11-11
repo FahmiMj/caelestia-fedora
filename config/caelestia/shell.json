@@ -58,7 +58,7 @@
     "general": {
         "apps": {
             "audio": [
-                "pwvucontrol"
+                "pavucontrol"
             ],
             "explorer": [
                 "thunar"
@@ -225,7 +225,6 @@
     },
     "services": {
         "audioIncrement": 0.05,
-        "gpuType": "Nvidia",
         "maxVolume": 1,
         "visualiserBars": 60
     }

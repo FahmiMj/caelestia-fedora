@@ -15,8 +15,6 @@
 set -euo pipefail
 
 # --- Default repository URL -------------------------------------------------
-# The repository is private, so the git credential helper from `gh auth login`
-# (or a personal access token) must be configured before this can clone it.
 DEFAULT_REPO_URL="${CAELESTIA_FEDORA_REPO:-https://github.com/FahmiMj/caelestia-fedora.git}"
 # ----------------------------------------------------------------------------
 
@@ -56,6 +54,18 @@ ensure_cmd curl curl
 
 export CAELESTIA_FEDORA_REPO="${repo_url}"
 export CAELESTIA_REF="${REF}"
+
+if [[ -d "${REPO_DIR}/.git" ]]; then
+    info "updating checkout in ${REPO_DIR}"
+    git -C "${REPO_DIR}" fetch --depth 1 origin "${REF}" \
+        && git -C "${REPO_DIR}" checkout --force FETCH_HEAD \
+        || die "could not update ${REPO_DIR}"
+else
+    info "cloning ${repo_url} (${REF}) into ${REPO_DIR}"
+    mkdir -p "${STATE_DIR}"
+    git clone --depth 1 --branch "${REF}" "${repo_url}" "${REPO_DIR}" \
+        || die "could not clone ${repo_url}"
+fi
 
 info "starting the installer"
 exec bash "${REPO_DIR}/install.sh" "${args[@]}"

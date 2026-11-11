@@ -74,6 +74,11 @@ apply_record_fix() {
         return 0
     fi
 
+    if ! have_cmd jq; then
+        warn "jq is unavailable; cannot write the encoder override to ${file}"
+        return 0
+    fi
+
     info "preferred hardware encoder: ${enc}"
     tmp="$(mktemp)"
     jq --arg c "${enc}" '.record.extraArgs = ["-k", $c]' "${file}" > "${tmp}" \
