@@ -18,6 +18,13 @@ case " $* " in
         ;;
 esac
 
+# Unattended installs (--yes / ASSUME_YES=1) do not need a terminal at all.
+NONINTERACTIVE=0
+[ "${ASSUME_YES:-0}" = "1" ] && NONINTERACTIVE=1
+case " $* " in
+    *" --yes "*|*" -y "*) NONINTERACTIVE=1 ;;
+esac
+
 # TTY handling: if stdin is not a terminal, reopen /dev/tty so interactive
 # prompts (sudo, confirm, gum) still work when piped or launched from a menu.
 # /dev/tty exists even when there is no controlling terminal, so probe it by
@@ -49,6 +56,8 @@ if [ ! -t 0 ]; then
         exec 0<>"$REAL_TTY" 1<>"$REAL_TTY" 2<>"$REAL_TTY"
     elif tty_usable; then
         exec 0<>/dev/tty
+    elif [ "$NONINTERACTIVE" = "1" ]; then
+        : # no prompts will be shown, so a terminal is not required
     else
         echo "  [ERR]   stdin is not a terminal and no TTY is available." >&2
         echo "  [INFO]  Please run the installer directly: sh install.sh" >&2

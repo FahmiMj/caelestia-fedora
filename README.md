@@ -81,7 +81,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/FahmiMj/caelestia-fedora/mai
 Fully unattended (standard set, no prompts):
 
 ```bash
-CAELESTIA_DIR="$HOME/caelestia-fedora" bash <(curl -fsSL https://raw.githubusercontent.com/FahmiMj/caelestia-fedora/main/install.sh)
+CAELESTIA_DIR="$HOME/caelestia-fedora" bash <(curl -fsSL https://raw.githubusercontent.com/FahmiMj/caelestia-fedora/main/install.sh) --yes
 ```
 
 ### From a checkout
