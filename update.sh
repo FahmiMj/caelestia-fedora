@@ -79,7 +79,9 @@ if [[ -f "$HOME/.config/caelestia/install.env" ]]; then
     set +a
 fi
 
-bash "$BUNDLE_DIR/install.sh" "$@"
+if ! bash "$BUNDLE_DIR/install.sh" "$@"; then
+    die "Installer failed; the update did not complete. See the output above."
+fi
 
 section "Update Completed Successfully"
 echo

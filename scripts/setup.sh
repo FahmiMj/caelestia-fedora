@@ -38,6 +38,11 @@ source "$SCRIPTS_DIR/lib/install-fs.sh"
 : "${M3SHAPES_REPO:=https://github.com/soramanew/m3shapes.git}"
 : "${CAELESTIA_REF:=main}"
 
+# The steps run as child processes, so these have to be exported for
+# `set -u` to see them (04/05/06/08 otherwise die with "unbound variable").
+export CAELESTIA_SHELL_REPO CAELESTIA_CLI_REPO CAELESTIA_DOTS_REPO \
+    CAVA_REPO M3SHAPES_REPO CAELESTIA_REF
+
 : "${XDG_CONFIG_HOME:=${HOME}/.config}"
 : "${XDG_DATA_HOME:=${HOME}/.local/share}"
 : "${XDG_STATE_HOME:=${HOME}/.local/state}"
@@ -160,6 +165,12 @@ main() {
             run_step "${step}"
         fi
     done
+
+    if [[ "${DRY_RUN}" == "1" ]]; then
+        ok "dry run complete - nothing was changed"
+        printf '\n'
+        return 0
+    fi
 
     ok "Caelestia installation complete"
     printf '\n'

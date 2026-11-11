@@ -37,18 +37,16 @@ install_shell() {
     # directory; hand them back to the user.
     caelestia_sudo chown -R "${USER}:$(id -gn)" "${dir}"
 
-    # Fedora quickshell isolation fix:
-    # The shell QML imports `qs.services`, `qs.components`, `qs.utils` but the
-    # installed tree only has services/, components/, utils/ at the top level
-    # (no qs/ namespace directory). Quickshell resolves `import qs.services`
-    # relative to the config dir, so create a qs/ symlink namespace.
-    local qsdir="${dir}/qs"
-    ensure_dir "${qsdir}/components"
-    ln -sf ../services  "${qsdir}/services"
-    ln -sf ../utils     "${qsdir}/utils"
-    ln -sf ../../components/containers "${qsdir}/components/containers"
-    ln -sf ../../components/filedialog "${qsdir}/components/filedialog"
-    ln -sf ../../components/images     "${qsdir}/components/images"
+    # Quickshell resolves `import qs.<path>` relative to the directory that
+    # holds shell.qml, and shell.qml imports qs.services, qs.daemons,
+    # qs.modules.* and qs.components.*. Mirror every imported top-level
+    # directory into a qs/ namespace so all of those imports resolve.
+    local qsdir="${dir}/qs" sub
+    ensure_dir "${qsdir}"
+    for sub in components daemons modules services utils; do
+        [[ -d "${dir}/${sub}" ]] || continue
+        ln -sfn "../${sub}" "${qsdir}/${sub}"
+    done
 
     ok "shell installed to ${dir}"
 }

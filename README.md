@@ -206,11 +206,11 @@ Run the included uninstaller:
 ./uninstall.sh
 ```
 
-It will stop the shell, remove configs and CLI, uninstall the session entry, and optionally
+It will stop the shell, remove the configs the installer deployed (including `~/.config/hypr`,
+`~/.config/fish` and the component configs), remove the CLI and session entry, and optionally
 remove installed packages.
 
-Remove `~/.config/hypr` and the component configs, or restore the `.bak-*` copies the
-installer created, if you want to return to your previous setup.
+Restore the `.bak-*` copies the installer created if you want to return to your previous setup.
 
 ## Troubleshooting
 

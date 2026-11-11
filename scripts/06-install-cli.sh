@@ -33,49 +33,46 @@ install_cli() {
 import sys
 from pathlib import Path
 
-cli_dir = Path(sys.argv[1])
-shell_py = cli_dir / "src" / "caelestia" / "subcommands" / "shell.py"
-if not shell_py.exists():
-    print(f"WARNING: {shell_py} not found; skipping CLI patch", file=sys.stderr)
+src_root = Path(sys.argv[1]) / "src" / "caelestia"
+if not src_root.is_dir():
+    print(f"WARNING: {src_root} not found; skipping CLI patch", file=sys.stderr)
     sys.exit(0)
 
-text = shell_py.read_text()
+# Every subcommand that talks to the running shell uses this argv prefix.
+OLD = '["qs", "-c", "caelestia"'
+NEW = '["qs", "-p", CAEL_QUICKSHELL_DIR'
+CONST = 'CAEL_QUICKSHELL_DIR = str(Path.home() / ".config" / "quickshell" / "caelestia")\n'
 
-# Add pathlib import if not present
-if "from pathlib import Path" not in text:
-    text = text.replace("import os\n", "import os\nfrom pathlib import Path\n")
+patched = []
+for path in sorted(src_root.rglob("*.py")):
+    text = path.read_text()
+    if OLD not in text:
+        continue
 
-# Add CAEL_QUICKSHELL_DIR constant
-CONST_DEF = 'CAEL_QUICKSHELL_DIR = str(Path.home() / ".config" / "quickshell" / "caelestia")\n'
-if "CAEL_QUICKSHELL_DIR" not in text:
-    marker = "from caelestia.utils.io import fatal, warn\n"
-    if marker in text:
-        text = text.replace(marker, marker + "\n" + CONST_DEF)
-    else:
-        # Fall back to defining the constant after the import block so the
-        # replacement below never references an undefined name.
+    if "CAEL_QUICKSHELL_DIR" not in text:
         lines = text.splitlines(keepends=True)
         last_import = 0
         for idx, line in enumerate(lines):
             if line.startswith(("import ", "from ")):
                 last_import = idx + 1
-        lines.insert(last_import, "\n" + CONST_DEF)
+        block = ""
+        if "from pathlib import Path" not in text:
+            block += "from pathlib import Path\n"
+        block += CONST
+        lines.insert(last_import, "\n" + block)
         text = "".join(lines)
 
-# Replace every qs -c caelestia with qs -p <dir>
-if '["qs", "-c", "caelestia"' not in text:
+    path.write_text(text.replace(OLD, NEW))
+    patched.append(str(path))
+
+if not patched:
     print(
-        f"WARNING: no 'qs -c caelestia' invocation in {shell_py}; CLI left unpatched",
+        "WARNING: no 'qs -c caelestia' invocations found; CLI left unpatched",
         file=sys.stderr,
     )
 else:
-    text = text.replace(
-        '["qs", "-c", "caelestia"',
-        '["qs", "-p", CAEL_QUICKSHELL_DIR',
-    )
-
-shell_py.write_text(text)
-print(f"patched {shell_py}")
+    for path in patched:
+        print(f"patched {path}")
 PYEOF
 
     pipx install --force "${dir}"

@@ -19,6 +19,7 @@ pkg_build_deps() {
     dnf_install \
         cmake ninja-build meson gcc-c++ pkgconf-pkg-config git \
         qt6-qtbase-devel qt6-qtdeclarative-devel qt6-qtshadertools-devel \
+        qt6-qtquickcontrols2-devel qt6-qtmultimedia-devel \
         fftw-devel inih-devel iniparser-devel \
         libqalculate-devel pipewire-devel aubio-devel lm_sensors-devel
 }
